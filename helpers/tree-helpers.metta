@@ -10,7 +10,7 @@
 (= (x) (Tree AND False Nil (Tree A True)))
 (= (x) (Tree AND False Nil (Tree AND False Nil (Tree A True))))
 (= (x) (Tree AND False Nil (Tree AND False Nil (Tree B True))))
-
+!(collapse x)
 (= (getBranches (Tree $type $constraint $guardSet $children)) $children)
 ;; !(getBranches (x))
 
@@ -26,6 +26,9 @@
         (remove-atom &self (= (y) $tree))
     )
 )
+(=(buildTree $exp)
+)
+
 
 ;; !(getChildren 1 (y))
 ;; !(removeChild (Tree 3 A True) (y))
