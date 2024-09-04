@@ -20,4 +20,22 @@
     )
 
 )
-(=(map))
+(=(mapSingleInstance $value Nil)
+    NONE
+)
+(=(mapSingleInstance $value (Cons $x $xs))
+    (case $x(
+        (($var $boolVal) 
+            (if (or (== $var result) (== $var Result))
+                NONE
+                (if (== $var $value)
+                    $boolVal
+                    (mapSingleInstance $value $xs)
+                )
+            )
+        )
+        ($_ NONE)
+    
+    ))
+    
+)
