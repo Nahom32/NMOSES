@@ -10,7 +10,11 @@
                     (if (and $isType1Expression $isType2Expression)
                         ($op (mapper $exp1 $setInstance) (mapper $exp2 $setInstance))
                         (if $isType1Expression 
-                            ($op (mapper $exp1 $setInstance) )
+                            ($op (mapper $exp1 $setInstance) (mapSingleInstance $exp2 $setInstance))
+                            (if $isType2Expression
+                                ($op (mapSingleInstance $exp1 $setInstance) (mapper $exp2 $setInstance))
+                                ($op (mapSingleInstance $exp1 $setInstance) (mapSingleInstance $exp2 $setInstance))
+                            )
                         )
                     )
                 )
