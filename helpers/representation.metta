@@ -1,0 +1,4 @@
+(rep1 (rep2 A1 A3 A4) A4)
+(AND OR) --> JUNCTORS
+(NOT OR THE REVERSE) --> LEAF NODES
+
