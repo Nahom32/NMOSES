@@ -36,7 +36,9 @@ def induce_probability_model(selected_population):
     for i in range(NUM_FEATURES):
         # Get values for this feature across all selected individuals
         values, counts = np.unique(selected_population[:, i], return_counts=True)
+        print(f"values: {values}, counts: {counts}")
         probabilities = counts / np.sum(counts)
+        print(f"{probabilities}")
         feature_probabilities.append((values, probabilities))
     
     return feature_probabilities
