@@ -1,0 +1,10 @@
+(=(function-set-generator $type)
+    (if (== $type boolean)
+        (OR AND)
+        (if (== $type arithmetic)
+            (ADD MULT DIVIDE SUB)
+            NONE
+        )
+    )
+)
+!(function-set-generator arithmetic)
