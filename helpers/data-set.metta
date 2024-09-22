@@ -1,4 +1,4 @@
-!(import! &self utils)
+;;!(import! &self utils)
 ;; (Cons (A True) (Cons (B False) (Cons (C True) Nil)))
 ;; (Cons (A True) (Cons (B False) (Cons (C True) Nil)))
 ;; (Cons (A True) (Cons (B False) (Cons (C True) Nil)))
@@ -41,14 +41,29 @@
         terminal-val
         (collapse (match $space ($value $x)
             (if (or (== $x OR) (== $x AND))
-                (reverse ($x (generate-a-representation $x $space (- $limit 1)) (generate-a-representation $x $space (- $limit 1))) ())
+                ($x (generate-a-representation $x $space (- $limit 1)) (generate-a-representation $x $space (- $limit 1))) 
                 (if (== $x NOT)
                     ($x terminal-val)
-                    (reverse (generate-a-representation $x $space (- $limit 1)))
+                    (generate-a-representation $x $space (- $limit 1))
                 )
             )
         ))
 
+    )
+)
+
+(= (reverse-list $list $accum)
+    (if (== (get-metatype $list) Expression)
+        (if (== $list ())
+            $accum
+            (let* (
+                ($head (car-atom $list))
+                ($tail (cdr-atom $list))
+            )
+                (reverse-list $tail (cons-atom $head $accum))
+            )
+        )
+        $list
     )
 )
 !(generate-a-representation junctor &self 5)

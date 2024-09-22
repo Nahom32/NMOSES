@@ -1,4 +1,4 @@
-(=(reverse $list $accum)
+(= (reverse $list $accum)
     (if (== $list ())
         $accum
         (let* (
