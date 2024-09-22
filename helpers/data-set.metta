@@ -25,22 +25,26 @@
     
 ;; )
 ;; !(generate-a-representation junctor &self)
+(junctor junctor)
 (junctor OR)
 (junctor AND)
 (junctor NOT)
-;;(junctor junctor)
 (AND terminal)
 (OR terminal)
+(NOT terminal)
 (junctor terminal)
 (terminal x)
 
 (= (generate-a-representation $value $space $limit)
     (if (or (== terminal $value) (< $limit 1))
-        x
+        terminal-val
         (collapse (match $space ($value $x)
             (if (or (== $x OR) (== $x AND))
                 ($x (generate-a-representation $x $space (- $limit 1)))
-                (generate-a-representation $x $space (- $limit 1))
+                (if (== $x NOT)
+                    ($x terminal-val)
+                    (generate-a-representation $x $space (- $limit 1))
+                )
             )
         ))
 
