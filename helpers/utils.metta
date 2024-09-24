@@ -36,3 +36,5 @@
 (=(max $exp)
     (max-helper (cdr-atom $exp) (car-atom $exp))
 )
+
+!(tree-depth (AND x1 (OR x1 (AND x3 x4) x5)))
