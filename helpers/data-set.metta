@@ -41,37 +41,50 @@
 ;;generates a representation from the above atomspace
 (= (generate-a-representation $value $space $limit)
     (if (or (== terminal $value) (< $limit 1))
-        terminal-val
-       (collapse (match $space ($value $x)
-            (if (or (== $x OR) (== $x AND))
-                ($x (generate-a-representation $x $space (- $limit 1)) (generate-a-representation $x $space (- $limit 1))) 
-                (if (== $x NOT)
-                    ($x terminal-val)
-                    (generate-a-representation $x $space (- $limit 1))
-                )
-            )
-        ))
-    )
-)
-(= (generate $value $space $limit)
-    (if (< $limit 1)
-        x
-        (collapse (match $space ($value $x)
-            (if (or (== $x OR) (== $x AND))
-                ($x (generate $x $space (- $limit 1)) (generate $x $space (- $limit 1)))
-                (if (== $x x)
-                    x
+        terminal-val 
+           ;;(collapse 
+                (match $space ($value $x)
+                (if (or (== $x OR) (== $x AND))
+                    ($x (generate-a-representation $x $space (- $limit 1)) (generate-a-representation $x $space (- $limit 1)))
+                    ;; (let* (
+                    ;;     ($left (generate-a-representation $x $space (- $limit 1)))
+                    ;;      ($right (generate-a-representation $x $space (- $limit 1)))
+                    ;;      ($tree ())
+                    ;;      ($partial-modified (cons-atom $right $tree))
+                    ;;     ($full-modified (cons-atom $left $partial-modified))
+                    ;;     ($gen-tree (cons-atom $x $tree))
+                       
+                    ;; )
+                    ;;     $gen-tree
+                    ;; )
                     (if (== $x NOT)
-                        ($x x)
-                        ((generate $x $space (- $limit 1)))
+                        ($x terminal-val)
+                        (generate-a-representation $x $space (- $limit 1))
                     )
-
                 )
             )
-        ))
-
+        ;;)
     )
 )
+;; (= (generate $value $space $limit)
+;;     (if (< $limit 1)
+;;         x
+;;         (collapse (match $space ($value $x)
+;;             (if (or (== $x OR) (== $x AND))
+;;                 ($x (generate $x $space (- $limit 1)) (generate $x $space (- $limit 1)))
+;;                 (if (== $x x)
+;;                     x
+;;                     (if (== $x NOT)
+;;                         ($x x)
+;;                         ((generate $x $space (- $limit 1)))
+;;                     )
+
+;;                 )
+;;             )
+;;         ))
+
+;;     )
+;; )
 
 (= (reverse-list $list $accum)
     (if (== (get-metatype $list) Expression)
@@ -88,4 +101,4 @@
     )
 )
 ;;!(generate-a-representation junctor &self 5)
-!(generate-a-representation junctor &self 5)
+!(generate-a-representation junctor &self 2)

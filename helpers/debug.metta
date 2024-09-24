@@ -6,3 +6,4 @@
     ((AND (terminal-val) (terminal-val)) (OR (terminal-val) (terminal-val)) ((AND (terminal-val) (terminal-val)) (OR (terminal-val) (terminal-val)) ((AND (terminal-val) (terminal-val)) (OR (terminal-val) (terminal-val)) ((AND terminal-val terminal-val) (OR terminal-val terminal-val) terminal-val terminal-val (NOT terminal-val)) terminal-val (NOT terminal-val)) terminal-val (NOT terminal-val)) terminal-val (NOT terminal-val)) 
     terminal-val (NOT terminal-val)
 )
+(OR (OR terminal-val terminal-val) (AND (AND terminal-val terminal-val) (AND terminal-val terminal-val)))
