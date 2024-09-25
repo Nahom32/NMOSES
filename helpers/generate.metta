@@ -10,7 +10,8 @@
 (= (generate $space $start $limit)
     (if (< $limit 1)
         terminal
-        (collapse (match &self ($start $x $y)
+        ;; (collapse 
+        (match &self ($start $x $y)
             (if (and (isJunctor $x) (isJunctor $y))
                 ($start (generate $space $x (- $limit 1)) (generate $space $y (- $limit 1)))
                 (if (or (isJunctor $x) (isJunctor $y))
@@ -22,7 +23,7 @@
                 )
             )
             )
-        )
+        ;; )
 
     )
 )

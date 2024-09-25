@@ -101,4 +101,4 @@
     )
 )
 ;;!(generate-a-representation junctor &self 5)
-!(generate-a-representation junctor &self 2)
+!(collapse (generate-a-representation junctor &self 5))
