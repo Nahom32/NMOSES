@@ -11,19 +11,19 @@
             )
                 (if $isHeadJunctor
                     (let $newAccum (cons-atom (OR AND) $accum)
-                        (decorate-with-knobs $tail $newAccum)
+                        (decorate-with-knobs $tail  $newAccum )
                     )
                     (if $isHeadExpression
                         (let $resultOfHead (decorate-with-knobs $head ())
                             (decorate-with-knobs $tail (cons-atom $resultOfHead $accum))
                         )
-                        (decorate-with-knobs $tail (cons-atom ($head (NOT $head) subexp) $accum))
+                        (decorate-with-knobs $tail  (cons-atom ($head (NOT $head) subexp) $accum))
                     )
 
 
                 )
             )
-            (cons-atom ($exp (NOT $exp) subexp) $accum)
+             (cons-atom ($exp (NOT $exp) subexp) $accum)
         )
 
     )  
@@ -42,3 +42,12 @@
     )
 )
 !(decorate-with-knobs (AND (OR x1 x2) x3) ())
+
+(= (reverse-atom $list $accum)
+    (if (== $list ())
+        $accum
+        (let $head (car-atom $list)
+            (reverse-atom (cdr-atom $list) (cons-atom $head $accum))
+        )
+    )
+)
