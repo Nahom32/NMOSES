@@ -1,5 +1,14 @@
+(= (reverse $list $accum)
+    (if (== $list ())
+        $accum
+        (let $head (car-atom $list)
+            (reverse (cdr-atom $list) (cons-atom $head $accum))
+        )
+    )
+)
+
 (=(decorate-with-knobs $exp $accum)
-    (if (eq $exp ())
+    (if (== $exp ())
         $accum
         (if (== (get-metatype $exp) Expression)
             
@@ -10,20 +19,32 @@
                 ($isHeadExpression (== (get-metatype $head) Expression))
             )
                 (if $isHeadJunctor
-                    (let $newAccum (cons-atom (OR AND) $accum)
-                        (decorate-with-knobs $tail  $newAccum )
+                    (let*  (
+                            ($newAccum (cons-atom (OR AND) $accum))
+                            ($reversedAccum (reverse $newAccum ()))
+                        )
+                        (decorate-with-knobs $tail $reversedAccum)
                     )
                     (if $isHeadExpression
-                        (let $resultOfHead (decorate-with-knobs $head ())
-                            (decorate-with-knobs $tail (cons-atom $resultOfHead $accum))
+                        (let* ( 
+                                ($resultOfHead (decorate-with-knobs $head ()))
+                                ($accumulatedTail (cons-atom $resultOfHead $accum))
+                                ($finalAccumulator (reverse $accumulatedTail ()))
+                            )
+                            (decorate-with-knobs $tail $finalAccumulator)
                         )
-                        (decorate-with-knobs $tail  (cons-atom ($head (NOT $head) subexp) $accum))
+                        (let* (
+                                ($tailKnob (cons-atom ($head (NOT $head) subexp) $accum))
+                                ($reversedKnob (reverse $tailKnob ()))
+                            )
+                            (decorate-with-knobs $tail $reversedKnob)
+                        )
                     )
 
 
                 )
             )
-             (cons-atom ($exp (NOT $exp) subexp) $accum)
+             (reverse (cons-atom ($exp (NOT $exp) subexp) $accum) ())
         )
 
     )  
@@ -43,11 +64,5 @@
 )
 !(decorate-with-knobs (AND (OR x1 x2) x3) ())
 
-(= (reverse-atom $list $accum)
-    (if (== $list ())
-        $accum
-        (let $head (car-atom $list)
-            (reverse-atom (cdr-atom $list) (cons-atom $head $accum))
-        )
-    )
-)
+
+;;!(reverse-atom (1 2 3 4 5) ())
