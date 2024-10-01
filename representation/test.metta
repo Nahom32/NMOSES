@@ -45,9 +45,24 @@
 	 )
 )
 
+(= (generateGrowTree $depth $funcSet $termSet)
+	 (if (or (== $depth 0) (< ((py-atom random.random)) 0.5))
+		 (chooseRandom $termSet)
+		 (let $func (chooseRandom $funcSet)
+			 (if (== (booleanArity $func) 1)
+				( $func (generateGrowTree (- $depth 1) $funcSet $termSet))
+				( $func (generateGrowTree (- $depth 1) $funcSet $termSet) (generateGrowTree (- $depth 1) $funcSet $termSet) )
+			 )
+		 )
+	 )
+)
+
+
 
 ;!(terminalSet)
 ;!(terminalSet)
 ;!(length (A B C)) ; should be 3
 ;!(getByIndex (A B C) 2) ; should be C
-!(generateFullTree 2 functionSet terminalSet)
+;!(generateFullTree 2 functionSet terminalSet)
+!(generateGrowTree 2 functionSet terminalSet)
+
