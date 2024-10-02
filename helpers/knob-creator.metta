@@ -7,7 +7,7 @@
     )
 )
 
-(=(decorate-with-knobs $exp $accum)
+(= (decorate-with-knobs $exp $accum)
     (if (== $exp ())
         $accum
         (if (== (get-metatype $exp) Expression)
@@ -20,31 +20,31 @@
             )
                 (if $isHeadJunctor
                     (let*  (
-                            ($newAccum (cons-atom (OR AND) $accum))
-                            ($reversedAccum (reverse $newAccum ()))
+                            ($modifiedAccum (append $accum (OR AND)))
+                            
                         )
-                        (decorate-with-knobs $tail $reversedAccum)
+                        (decorate-with-knobs $tail $modifiedAccum)
                     )
                     (if $isHeadExpression
                         (let* ( 
                                 ($resultOfHead (decorate-with-knobs $head ()))
-                                ($accumulatedTail (cons-atom $resultOfHead $accum))
-                                ($finalAccumulator (reverse $accumulatedTail ()))
+                                ($accumulatedTail (append $accum $resultOfHead))
+                                ;; ($finalAccumulator (reverse $accumulatedTail ()))
                             )
-                            (decorate-with-knobs $tail $finalAccumulator)
+                            (decorate-with-knobs $tail $accumulatedTail)
                         )
                         (let* (
-                                ($tailKnob (cons-atom ($head (NOT $head) subexp) $accum))
-                                ($reversedKnob (reverse $tailKnob ()))
+                                ($tailKnob  (append $accum ($head (NOT $head) subexp)))
+                                ;; ($reversedKnob (reverse $tailKnob ()))
                             )
-                            (decorate-with-knobs $tail $reversedKnob)
+                            (decorate-with-knobs $tail $tailKnob)
                         )
                     )
 
 
                 )
             )
-             (reverse (cons-atom ($exp (NOT $exp) subexp) $accum) ())
+             (append $accum  ($exp (NOT $exp) subexp))
         )
 
     )  
@@ -62,6 +62,24 @@
 
     )
 )
+(= (append-helper $list $accum)
+    
+        (if (== $list ())
+            $accum
+            (let* (
+                ($head (car-atom $list))
+                ($tail (cdr-atom $list))
+            )
+                (append-helper $tail (cons-atom $head $accum))
+            )
+        )
+
+   
+)
+(= (append $list $data)
+    (append-helper (reverse $list ()) ($data))
+)
+;;!(append (1 2 3 4 5 6) 7)
 !(decorate-with-knobs (AND (OR x1 x2) x3) ())
 
 
