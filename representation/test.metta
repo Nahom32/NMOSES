@@ -57,12 +57,27 @@
 	 )
 )
 
-
+(= (rampedHalfHalf  $popSize $depth $population $funcSet $termSet $generateFullTree $generateGrowTree )
+	 (if (== $popSize 0)
+		 ()
+		 (let*
+			 (
+         ($full (add-atom &self (= ($population) (generateFullTree $depth $funcSet $termSet))))
+         ($grow (add-atom &self (= ($population) (generateGrowTree $depth $funcSet $termSet))))
+			 )
+			 (
+				rampedHalfHalf (- $popSize 1) 2 $population $funcSet $termSet $generateFullTree $generateGrowTree
+			 )
+		 )
+	 )
+)
 
 ;!(terminalSet)
 ;!(terminalSet)
 ;!(length (A B C)) ; should be 3
 ;!(getByIndex (A B C) 2) ; should be C
 ;!(generateFullTree 2 functionSet terminalSet)
-!(generateGrowTree 2 functionSet terminalSet)
-
+;!(generateGrowTree 2 functionSet terminalSet)
+(= (population) ())
+!(rampedHalfHalf 2 2 population functionSet terminalSet generateFullTree generateGrowTree)
+!(population)
