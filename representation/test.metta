@@ -57,42 +57,41 @@
 	 )
 )
 
-(= (rampedHalfHalf  $popSize $depth $population $funcSet $termSet $generateFullTree $generateGrowTree )
-	 (if (== $depth 0)
-		 ()
-		 (let $generate (rp ((py-atom math.floor) (/ $popSize (* $depth 2))) $depth $population $funcSet $termSet $generateFullTree $generateGrowTree)
-            (rampedHalfHalf $popSize (- $depth 1) $population $funcSet $termSet $generateFullTree $generateGrowTree)
+(= (rampedHalfHalf $popSize $depth $population $funcSet $termSet $generateFullTree $generateGrowTree )
+	 (let $range ((py-atom math.floor) (/ $popSize (* $depth 2)))
+		 (if (or (== $range 0) (== $depth 0))
+			 ()
+			 (let*
+				 (
+					 ($addFull (exec (add-atom &self (= ($population) ($generateFullTree $depth $funcSet $termSet))) $range) )
+					 ($addGrow (exec (add-atom &self (= ($population) ($generateGrowTree $depth $funcSet $termSet))) $range) )
+				 )
+				 (
+					rampedHalfHalf $popSize (- $depth 1) $population $funcSet $termSet $generateFullTree $generateGrowTree
+				 )
+			 )
 		 )
 	 )
 )
 
-(= (rp $range $depth $population $funcSet $termSet $generateFullTree $generateGrowTree )
-	 (if (<= $range 0)
-		 ()
-		 (let*
-			 (
-				 ($full (add-atom &self (= ($population) ($generateFullTree $depth $funcSet $termSet))))
-				 ($grow (add-atom &self (= ($population) ($generateGrowTree $depth $funcSet $termSet))))
-			 )
-			 (
-				rp (- $range 1) $depth $population $funcSet $termSet $generateFullTree $generateGrowTree
-			 )
-		 )
-	 )
-) 
 
+(= (exec $func $times) 
+	(if (== $times 0)
+		()
+		(($func) (exec $func (- $times 1)))
+	)
+)
 
 
 
 ;!(terminalSet)
-	;!(terminalSet)
-	;!(length (A B C)) ; should be 3
+;!(terminalSet)
+;!(length (A B C)) ; should be 3
 ;!(getByIndex (A B C) 2) ; should be C
 ;!(generateFullTree 2 functionSet terminalSet)
 ;!(generateGrowTree 2 functionSet terminalSet)
 (= (population) ())
-;!(rp 2 population functionSet terminalSet generateFullTree generateGrowTree)
-!(rampedHalfHalf 4 8 population functionSet terminalSet generateFullTree generateGrowTree)
+!(rampedHalfHalf 4 2 population functionSet terminalSet generateFullTree generateGrowTree)
 !(population)
 
 
