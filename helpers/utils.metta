@@ -45,5 +45,51 @@
 (=(decons-atom $atom)
     ((car-atom $atom) (cdr-atom $atom))
 )
-!(decons-atom (1 2 3 4 5))
+;;a function that binarizes an n-ary expression
+;; (= (binarize $expression $parentNode $accum)
+;;     (if (== $expression ())
+;;         $accum
+;;         (let* (
+;;                 (($head $tail) (decons-atom $expression))
+;;                 ($isHeadJunctor (or (== $head AND) (== $head OR))) ;;isHeadJunctor
+;;             )
+;;             (if $isHeadJunctor
+;;                 (if )
+
+;;             )
+;;         )
+;;     )
+;; )
+(=(kolmogorov $exp)
+    (if (== () $exp)
+        0
+        (let ($head $tail) (decons-atom $exp)
+            (if (== (get-metatype $head) Expression)
+                (+ (kolmogorov $head) (kolmogorov $tail))
+                (+ 1 (kolmogorov $tail))
+            )
+        )
+    )
+     
+)
+;;This function counts symbols if they are not literals in an expression
+(= (countLiterals $expression)
+    (if (== $expression ())
+        0
+        (let* (
+                (($head $tail) (decons-atom $expression))
+                ($isHeadJunctor (or (== $head AND) (== $head OR))) ;;isHeadJunctor
+            )
+            (if (and (== (get-metatype $head) Symbol) (not $isHeadJunctor))
+
+                (+ 1 (countLiterals $tail))
+                (countLiterals $tail)
+            )
+        )
+    )
+)
+;;!(countLiterals (AND A B (OR C D) E))
+!(kolmogorov (AND A B (OR C D) E))
+
+;;!(decons-atom (1 2 3 4 5))
 ;;!(tree-depth (AND x1 (OR x1 (AND x3 x4) x5)))
