@@ -1,6 +1,7 @@
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! rand (py-atom random.randint))
+!(bind! pow (py-atom pow))
 (= (length $list)
     (if (== $list ())
         0
@@ -54,6 +55,7 @@
         ($parent $child $weight)
     )
 )
+;;The below function initializes a weighted stochastic grammar for a single parent.
 (= (initializeForSingleLhs $grammarSpace $parent)
     (let* (
             ($children (filterProductionByLeftHandSide $grammarSpace $parent))
@@ -63,14 +65,40 @@
         $weightedChildren
     )
 )
-
-
-(= (calculateProbability $space $productionRule)
-    ()
+;; the below function finds the sum of a given tuple.
+(= (sum $tuple)
+    (let* (
+        ($head (car-atom $tuple))
+        ($tail (cdr-atom $tuple))
+    )
+        (if (== $tuple ())
+            0
+            (+ $sum (add $tail))
+        )
+    )
 )
-
-(= (initializeSGSpace $grammarSpace $sgSpace)
-   () 
+(= (updateWeight $prodRule $learnRate $cardinality $type)
+    (let ($lhs $rhs $weight) $prodRule
+        (if (== $type inc)
+            (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
+                ($lhs $rhs $updatedWeight)
+            )
+            (let $updatedWeight (/ $weight (pow (+ 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
+                ($lhs $rhs $updatedWeight)
+            )
+        )
+    )
 )
+!(initializeGrammarSpace &grammarSpace)
+!(initializeForSingleLhs &grammarSpace junctor)
+!(updateWeight (AND terminal 6) 0.1 4 dec)
+
+;; (= (calculateProbability $space $productionRule)
+;;     ()
+;; )
+
+;; (= (initializeSGSpace $grammarSpace $sgSpace)
+;;    () 
+;; )
 ;; !(rand 5 15)
 

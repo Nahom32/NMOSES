@@ -8,12 +8,15 @@
     (bind! $x (py-atom $y)))
 (= (import $x) 
     (import $x as $x))
+!(bind! &probtablespace (new-space))
+
 
 
 ;;!(import normal_distribution as normal)
 ;;!(import! &self normal_distribution)
 !(import normal_distribution.normal)
 !(normal_distribution.normal 0.6 0.8 0.7)
+
 ;;!(normal 0.3 0.2 0.1)
 
 

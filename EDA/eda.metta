@@ -1,0 +1,45 @@
+!(bind! &termSpace (new-space))
+!(bind! &functionSpace (new-space))
+!(bind! &grammarSpace (new-space))
+;;!(import normal_distribution.normal)
+
+(= (getByIndex $collapsedVal $n) 
+    (if (== $n 0)
+        (car-atom $collapsedVal)
+        (getByIndex (cdr-atom $collapsedVal) (- $n 1))
+    )
+)
+
+(= (chooseRandomFromAtom $x)
+    (getByIndex $x ((py-atom random.randint) 0 (- (length $collapsed) 1)))
+)
+
+(= (initialize_space $space)
+    (if (== $space &functionSpace)
+        (let () (add-atom $space (AND 0.33))
+            (let () (add-atom $space (OR 0.34))
+                (add-atom $space (NOT 0.33))
+            )
+        )
+        (let () (add-atom $space (x 0.5))   
+            (add-atom $space (y 0.5))
+        )
+    )
+)
+
+(= (length $list)
+    (if (== $list ())
+        0
+        (+ 1 (length (cdr-atom $list)))
+    )
+)
+(= (lengthAtomSpace $space)
+    (let $atomList (collapse (match $space $x $x))
+        (length $atomList)
+    )
+)
+
+
+!(initialize_space &functionSpace)
+!(lengthAtomSpace &functionSpace)
+
