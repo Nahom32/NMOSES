@@ -8,11 +8,11 @@
         (+ 1 (length (cdr-atom $list)))
     )
 )
-(=(listAtomspaceValues $space)
+;;the below function extracts the atoms from an atomspace.
+(=(extractAtomSpace $space)
     (collapse (match $space $value $value))
 )
 ;; the below function calculates the number of atoms in an atomspace
-;; 
 (= (lengthAtomSpace $space) 
     (let $atomList (collapse (match $space $atomGrammar $atomGrammar))
         (length $atomList)
@@ -77,6 +77,11 @@
         )
     )
 )
+;;The updateWeight function is how the guided search is modified
+;;The parameters are the production rule
+;;a learn rate on how the weight changes 0 < lr < 1
+;;cardinality is the number of chosen weights according to a probabilistic value.
+;;type shows if it should be increased or decreased;
 (= (updateWeight $prodRule $learnRate $cardinality $type)
     (let ($lhs $rhs $weight) $prodRule
         (if (== $type inc)
@@ -89,9 +94,24 @@
         )
     )
 )
+(=(extractParent $exp)
+    (let ($lhs $rhs) $exp
+        $lhs
+    )
+)
+(= (initializeStochasticSpace $grammarSpace)
+    (let* (
+        ($grammarAtoms (extractAtomSpace $grammarSpace))
+        ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (extractParent (superpose $grammarAtoms)))))
+    )
+        $weightedAtoms
+    )
+    
+)
 !(initializeGrammarSpace &grammarSpace)
 !(initializeForSingleLhs &grammarSpace junctor)
-!(updateWeight (AND terminal 6) 0.1 4 dec)
+!(updateWeight (AND terminal 6) 0.001 7 dec)
+!(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
 ;;     ()
