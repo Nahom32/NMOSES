@@ -99,6 +99,7 @@
         $lhs
     )
 )
+
 (= (initializeStochasticSpace $grammarSpace)
     (let* (
         ($grammarAtoms (extractAtomSpace $grammarSpace))
@@ -108,10 +109,11 @@
     )
     
 )
+
 !(initializeGrammarSpace &grammarSpace)
 !(initializeForSingleLhs &grammarSpace junctor)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
-!(initializeStochasticSpace &grammarSpace)
+;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
 ;;     ()
