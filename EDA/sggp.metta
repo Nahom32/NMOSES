@@ -109,7 +109,7 @@
     )
     
 )
-;;mutateRule mutates a production rule with some rate
+;; mutateRule mutates a production rule with some mutation rate.
 (= (mutateRule $prodRule $mutationRate)
     (let* (
         (($lhs $rhs $weight) $prodRule) 
@@ -119,10 +119,12 @@
         
     )
 )
+
 !(initializeGrammarSpace &grammarSpace)
 !(initializeForSingleLhs &grammarSpace junctor)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
+!(initializeStochasticSpace &grammarSpace)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
