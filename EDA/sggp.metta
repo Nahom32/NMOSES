@@ -35,7 +35,7 @@
 ;;The below function adds list elements to space
 (=(addListToSpace $space $list)
     (if (== $terminalSet ())
-        ()
+        (empty)
         (let* (
             ($head (car-atom $terminalSet))
             ($tail (cdr-atom $terminalSet))
@@ -67,14 +67,9 @@
 )
 ;; the below function finds the sum of a given tuple.
 (= (sum $tuple)
-    (let* (
-        ($head (car-atom $tuple))
-        ($tail (cdr-atom $tuple))
-    )
-        (if (== $tuple ())
-            0
-            (+ $sum (add $tail))
-        )
+    (if (== $tuple ())
+        0
+        (+ (car-atom $tuple) (sum (cdr-atom $tuple)))
     )
 )
 ;;The updateWeight function is how the guided search is modified
@@ -94,6 +89,7 @@
         )
     )
 )
+;;This function is used to extract a parent or left hand side of a context free grammar.
 (=(extractParent $exp)
     (let ($lhs $rhs) $exp
         $lhs
@@ -120,11 +116,38 @@
     )
 )
 
-!(initializeGrammarSpace &grammarSpace)
-!(initializeForSingleLhs &grammarSpace junctor)
-!(updateWeight (AND terminal 6) 0.001 7 dec)
-!(mutateRule (AND terminal 4) 0.7)
-!(initializeStochasticSpace &grammarSpace)
+(= (extractWeightsFromParent $parent $space)
+    (collapse (match $space ($parent $child $value) $value))
+)
+;; (= (calculateProbability $prodRule $space)
+;;     (let* (
+;;             ;;(($))
+;;             (($lhs $rhs $weight) $prodRule)
+;;             ($parent (match $space ($x $prodRule) $x))
+;;             ($total (sum (extractWeightsFromParent $parent $space)))
+;;         )
+
+;;     )
+;; )
+(= (generate-instances $initSymbol $space $depth)
+    (if (== $depth 0)
+        (empty)
+        (let* (
+            ($randomNumber (rand 0 1))
+            ($nextRule (match $space ($initSymbol $x $value) (if ))
+            )
+
+        ))
+
+    )
+)
+!(sum (1 2 2 4 5))
+
+;; !(initializeGrammarSpace &grammarSpace)
+;; !(initializeForSingleLhs &grammarSpace junctor)
+;; !(updateWeight (AND terminal 6) 0.001 7 dec)
+;; !(mutateRule (AND terminal 4) 0.7)
+;; !(initializeStochasticSpace &grammarSpace)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
