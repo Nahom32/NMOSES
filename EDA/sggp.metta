@@ -113,15 +113,16 @@
     )
 )
 
-(= (initializeStocProdValues $alphabetSpace $grammarSpace)
+(= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
         ($grammarAtoms (extractAtomSpace $alphabetSpace))
         ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (superpose $grammarAtoms))))
     )
-        $weightedAtoms
+        (addListToSpace $stocSpace (superpose $weightedAtoms))
     )
     
 )
+
 
 ;; mutateRule mutates a production rule with some mutation rate.
 (= (mutateRule $prodRule $mutationRate)
@@ -133,9 +134,19 @@
         
     )
 )
-
+;;This function extracts the weights of production rules from the atomspace 
+;;The parent represents a left hand side production rule
 (= (extractWeightsFromParent $parent $space)
     (collapse (match $space ($parent $child $value) $value))
+)
+;; This function calculates probability of a production rule
+(= (calculateProbability ($lhs $rhs) $space)
+    (let* (
+        ($totalValue (sum (extractWeightsFromParent $lhs $space)))
+        ($weight (match $space ($lhs $rhs $value) $value))
+    ) 
+        (/ $weight $totalValue)
+    )
 )
 
 (= (generateInstances $initSymbol $space $depth)
@@ -154,11 +165,13 @@
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
 !(extractAtomSpace &alphabetSpace)
-!(initializeGrammarSpace &grammarSpace)
+!(initializeGrammarSpace &grammarSpace) 
 ;;!(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
-!(initializeStocProdValues &alphabetSpace &grammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(extractAtomSpace &stochasticGrammarSpace)
+!(calculateProbability (junctor OR) &stochasticGrammarSpace)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
