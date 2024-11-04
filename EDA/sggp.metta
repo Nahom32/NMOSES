@@ -2,6 +2,7 @@
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! rand (py-atom random.randint))
 !(bind! pow (py-atom pow))
+!(bind! &alphabetSpace (new-space))
 (= (length $list)
     (if (== $list ())
         0
@@ -18,13 +19,29 @@
         (length $atomList)
     )
 )
-;;This adds new grammar into space
+;; the below code initializes the alphabet space containing the set {AND, OR, NOT, junctor}
+;; the starting symbol will be junctor.
+(= (initializeAlphabetSpace $space)
+    (let () (add-atom $space junctor)
+        (let () (add-atom $space AND)
+            (let () (add-atom $space OR)
+            ;;    (let () 
+                    (add-atom $space NOT)
+                    ;; (add-atom $space terminal)
+            ;;    )
+            )
+        )
+    )
+)
+;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
     (let () (add-atom $space (junctor junctor))
         (let () (add-atom $space (junctor AND))
             (let () (add-atom $space (junctor OR))
                 (let () (add-atom $space (AND terminal))
-                    (add-atom $space (OR terminal))
+                    (let () (add-atom $space (OR terminal))
+                        (add-atom $space (NOT terminal))
+                    )
                 )
             )
 
@@ -32,14 +49,14 @@
     )
 
 )
-;;The below function adds list elements to space
-(=(addListToSpace $space $list)
-    (if (== $terminalSet ())
+;;The below function adds list production items to space
+(= (addListToSpace $space $list)
+    (if (== $list ())
         (empty)
         (let* (
-            ($head (car-atom $terminalSet))
-            ($tail (cdr-atom $terminalSet))
-            (() (add-atom $space (terminal $head)))
+            ($head (car-atom $list))
+            ($tail (cdr-atom $list))
+            (() (add-atom $space $head))
         )
             (addListToSpace $space $tail)
         )
@@ -96,15 +113,16 @@
     )
 )
 
-(= (initializeStochasticSpace $grammarSpace)
+(= (initializeStocProdValues $alphabetSpace $grammarSpace)
     (let* (
-        ($grammarAtoms (extractAtomSpace $grammarSpace))
-        ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (extractParent (superpose $grammarAtoms)))))
+        ($grammarAtoms (extractAtomSpace $alphabetSpace))
+        ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (superpose $grammarAtoms))))
     )
         $weightedAtoms
     )
     
 )
+
 ;; mutateRule mutates a production rule with some mutation rate.
 (= (mutateRule $prodRule $mutationRate)
     (let* (
@@ -119,35 +137,28 @@
 (= (extractWeightsFromParent $parent $space)
     (collapse (match $space ($parent $child $value) $value))
 )
-;; (= (calculateProbability $prodRule $space)
-;;     (let* (
-;;             ;;(($))
-;;             (($lhs $rhs $weight) $prodRule)
-;;             ($parent (match $space ($x $prodRule) $x))
-;;             ($total (sum (extractWeightsFromParent $parent $space)))
-;;         )
 
-;;     )
-;; )
-(= (generate-instances $initSymbol $space $depth)
+(= (generateInstances $initSymbol $space $depth)
     (if (== $depth 0)
         (empty)
         (let* (
             ($randomNumber (rand 0 1))
-            ($nextRule (match $space ($initSymbol $x $value) (if ))
+            ($nextRule (match $space ($initSymbol $x $value) 
+            (let $probVal (calculateProbability ) ))
             )
 
         ))
 
     )
 )
-!(sum (1 2 2 4 5))
-
-;; !(initializeGrammarSpace &grammarSpace)
-;; !(initializeForSingleLhs &grammarSpace junctor)
-;; !(updateWeight (AND terminal 6) 0.001 7 dec)
-;; !(mutateRule (AND terminal 4) 0.7)
-;; !(initializeStochasticSpace &grammarSpace)
+;; !(sum (1 2 2 4 5))
+!(initializeAlphabetSpace &alphabetSpace)
+!(extractAtomSpace &alphabetSpace)
+!(initializeGrammarSpace &grammarSpace)
+;;!(filterProductionByLeftHandSide &grammarSpace terminal)
+!(updateWeight (AND terminal 6) 0.001 7 dec)
+!(mutateRule (AND terminal 4) 0.7)
+!(initializeStocProdValues &alphabetSpace &grammarSpace)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
