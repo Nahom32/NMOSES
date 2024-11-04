@@ -1,6 +1,7 @@
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! rand (py-atom random.randint))
+!(bind! random (py-atom random.random))
 !(bind! pow (py-atom pow))
 !(bind! &alphabetSpace (new-space))
 (= (length $list)
@@ -148,20 +149,35 @@
         (/ $weight $totalValue)
     )
 )
-
-(= (generateInstances $initSymbol $space $depth)
+;; returns a non-deterministic instances stochastically
+(= (generateInstancesHelper $initSymbol $space $depth)
     (if (== $depth 0)
         (empty)
-        (let* (
-            ($randomNumber (rand 0 1))
-            ($nextRule (match $space ($initSymbol $x $value) 
-            (let $probVal (calculateProbability ) ))
+        ;; (let $randomNumber (rand 0 1)
+            (if (> $depth 0)
+                (if (== $initSymbol terminal)
+                    $initSymbol
+                    (match $space ($initSymbol $rhs $value)
+                        (let* (
+                            ($prodProb (calculateProbability ($initSymbol $rhs) $space))
+                            ($randomNumber (random))
+                            )
+                            (if (>= $prodProb $randomNumber)
+                                    ($rhs (generateInstanceHelper $rhs $space (- $depth 1)) (generateInstanceHelper $rhs $space (- $depth 1)))
+                                    (empty)
+                            )
+                        )
+                    )
+                )
+                (empty)
             )
-
-        ))
-
+        ;; )
     )
 )
+(= (generateInstances $initSymbol $space $depth)
+    (collapse (generateInstancesHelper $initSymbol $space $depth))
+)
+
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
 !(extractAtomSpace &alphabetSpace)
@@ -172,6 +188,8 @@
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
+
+!(generateInstances junctor &stochasticGrammarSpace 5)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
