@@ -4,6 +4,7 @@
 !(bind! random (py-atom random.random))
 !(bind! pow (py-atom pow))
 !(bind! &alphabetSpace (new-space))
+
 (= (length $list)
     (if (== $list ())
         0
@@ -108,12 +109,12 @@
     )
 )
 ;;This function is used to extract a parent or left hand side of a context free grammar.
-(=(extractParent $exp)
+(= (extractParent $exp)
     (let ($lhs $rhs) $exp
         $lhs
     )
 )
-
+;; the below function initializes a stochastic space.
 (= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
         ($grammarAtoms (extractAtomSpace $alphabetSpace))
@@ -150,28 +151,26 @@
     )
 )
 ;; returns a non-deterministic instances stochastically
-(= (generateInstancesHelper $initSymbol $space $depth)
-    (if (== $depth 0)
-        (empty)
-        ;; (let $randomNumber (rand 0 1)
-            (if (> $depth 0)
-                (if (== $initSymbol terminal)
-                    $initSymbol
-                    (match $space ($initSymbol $rhs $value)
-                        (let* (
-                            ($prodProb (calculateProbability ($initSymbol $rhs) $space))
-                            ($randomNumber (random))
-                            )
-                            (if (>= $prodProb $randomNumber)
-                                    ($rhs (generateInstanceHelper $rhs $space (- $depth 1)) (generateInstanceHelper $rhs $space (- $depth 1)))
-                                    (empty)
-                            )
+(= (generateInstancesHelper $initSymbol $stocSpace $depth)
+    (if (>= $depth 0)
+        (if (== $initSymbol terminal)
+            $initSymbol
+            (match $stocSpace ($initSymbol $rhs $value)
+                (if (== $rhs junctor)
+                    (generateInstancesHelper $rhs $stocSpace $depth)
+                    (let* (
+                        ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+                        ($randomNumber (random))
+                        )
+                        (if (>= $prodProb $randomNumber)
+                                ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
+                                (generateInstancesHelper $rhs $stocSpace (- $depth 1))
                         )
                     )
                 )
-                (empty)
             )
-        ;; )
+        )
+        terminal
     )
 )
 (= (generateInstances $initSymbol $space $depth)
@@ -189,7 +188,7 @@
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 
-!(generateInstances junctor &stochasticGrammarSpace 5)
+!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
