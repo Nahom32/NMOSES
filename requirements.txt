@@ -1,0 +1,4 @@
+deap
+scikit-optimize
+numpy
+matplotlib
