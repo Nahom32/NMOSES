@@ -1,10 +1,11 @@
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
-!(bind! rand (py-atom random.randint))
-!(bind! random (py-atom random.random))
+!(bind! rand (py-atom random.randint)) ;;pseudo random integers
+!(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
 !(bind! &alphabetSpace (new-space))
 
+;;calculates the length of a list
 (= (length $list)
     (if (== $list ())
         0
@@ -17,7 +18,7 @@
 )
 ;; the below function calculates the number of atoms in an atomspace
 (= (lengthAtomSpace $space) 
-    (let $atomList (collapse (match $space $atomGrammar $atomGrammar))
+    (let $atomList (collapse (match $space $x $x))
         (length $atomList)
     )
 )
@@ -102,7 +103,7 @@
             (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
                 ($lhs $rhs $updatedWeight)
             )
-            (let $updatedWeight (/ $weight (pow (+ 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
+            (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
                 ($lhs $rhs $updatedWeight)
             )
         )
@@ -170,7 +171,7 @@
                 )
             )
         )
-        terminal
+        (empty)
     )
 )
 (= (generateInstances $initSymbol $space $depth)
