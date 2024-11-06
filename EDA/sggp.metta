@@ -1,7 +1,11 @@
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
-!(bind! rand (py-atom random.randint))
+!(bind! rand (py-atom random.randint)) ;;pseudo random integers
+!(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
+!(bind! &alphabetSpace (new-space))
+
+;;calculates the length of a list
 (= (length $list)
     (if (== $list ())
         0
@@ -14,17 +18,33 @@
 )
 ;; the below function calculates the number of atoms in an atomspace
 (= (lengthAtomSpace $space) 
-    (let $atomList (collapse (match $space $atomGrammar $atomGrammar))
+    (let $atomList (collapse (match $space $x $x))
         (length $atomList)
     )
 )
-;;This adds new grammar into space
+;; the below code initializes the alphabet space containing the set {AND, OR, NOT, junctor}
+;; the starting symbol will be junctor.
+(= (initializeAlphabetSpace $space)
+    (let () (add-atom $space junctor)
+        (let () (add-atom $space AND)
+            (let () (add-atom $space OR)
+            ;;    (let () 
+                    (add-atom $space NOT)
+                    ;; (add-atom $space terminal)
+            ;;    )
+            )
+        )
+    )
+)
+;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
     (let () (add-atom $space (junctor junctor))
         (let () (add-atom $space (junctor AND))
             (let () (add-atom $space (junctor OR))
                 (let () (add-atom $space (AND terminal))
-                    (add-atom $space (OR terminal))
+                    (let () (add-atom $space (OR terminal))
+                        (add-atom $space (NOT terminal))
+                    )
                 )
             )
 
@@ -32,14 +52,14 @@
     )
 
 )
-;;The below function adds list elements to space
-(=(addListToSpace $space $list)
-    (if (== $terminalSet ())
-        ()
+;;The below function adds list production items to space
+(= (addListToSpace $space $list)
+    (if (== $list ())
+        (empty)
         (let* (
-            ($head (car-atom $terminalSet))
-            ($tail (cdr-atom $terminalSet))
-            (() (add-atom $space (terminal $head)))
+            ($head (car-atom $list))
+            ($tail (cdr-atom $list))
+            (() (add-atom $space $head))
         )
             (addListToSpace $space $tail)
         )
@@ -67,14 +87,9 @@
 )
 ;; the below function finds the sum of a given tuple.
 (= (sum $tuple)
-    (let* (
-        ($head (car-atom $tuple))
-        ($tail (cdr-atom $tuple))
-    )
-        (if (== $tuple ())
-            0
-            (+ $sum (add $tail))
-        )
+    (if (== $tuple ())
+        0
+        (+ (car-atom $tuple) (sum (cdr-atom $tuple)))
     )
 )
 ;;The updateWeight function is how the guided search is modified
@@ -88,27 +103,30 @@
             (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
                 ($lhs $rhs $updatedWeight)
             )
-            (let $updatedWeight (/ $weight (pow (+ 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
+            (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
                 ($lhs $rhs $updatedWeight)
             )
         )
     )
 )
-(=(extractParent $exp)
+;;This function is used to extract a parent or left hand side of a context free grammar.
+(= (extractParent $exp)
     (let ($lhs $rhs) $exp
         $lhs
     )
 )
-
-(= (initializeStochasticSpace $grammarSpace)
+;; the below function initializes a stochastic space.
+(= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
-        ($grammarAtoms (extractAtomSpace $grammarSpace))
-        ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (extractParent (superpose $grammarAtoms)))))
+        ($grammarAtoms (extractAtomSpace $alphabetSpace))
+        ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (superpose $grammarAtoms))))
     )
-        $weightedAtoms
+        (addListToSpace $stocSpace (superpose $weightedAtoms))
     )
     
 )
+
+
 ;; mutateRule mutates a production rule with some mutation rate.
 (= (mutateRule $prodRule $mutationRate)
     (let* (
@@ -119,12 +137,59 @@
         
     )
 )
+;;This function extracts the weights of production rules from the atomspace 
+;;The parent represents a left hand side production rule
+(= (extractWeightsFromParent $parent $space)
+    (collapse (match $space ($parent $child $value) $value))
+)
+;; This function calculates probability of a production rule
+(= (calculateProbability ($lhs $rhs) $space)
+    (let* (
+        ($totalValue (sum (extractWeightsFromParent $lhs $space)))
+        ($weight (match $space ($lhs $rhs $value) $value))
+    ) 
+        (/ $weight $totalValue)
+    )
+)
+;; returns a non-deterministic instances stochastically
+(= (generateInstancesHelper $initSymbol $stocSpace $depth)
+    (if (>= $depth 0)
+        (if (== $initSymbol terminal)
+            $initSymbol
+            (match $stocSpace ($initSymbol $rhs $value)
+                (if (== $rhs junctor)
+                    (generateInstancesHelper $rhs $stocSpace $depth)
+                    (let* (
+                        ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+                        ($randomNumber (random))
+                        )
+                        (if (>= $prodProb $randomNumber)
+                                ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
+                                (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+                        )
+                    )
+                )
+            )
+        )
+        (empty)
+    )
+)
+(= (generateInstances $initSymbol $space $depth)
+    (collapse (generateInstancesHelper $initSymbol $space $depth))
+)
 
-!(initializeGrammarSpace &grammarSpace)
-!(initializeForSingleLhs &grammarSpace junctor)
+;; !(sum (1 2 2 4 5))
+!(initializeAlphabetSpace &alphabetSpace)
+!(extractAtomSpace &alphabetSpace)
+!(initializeGrammarSpace &grammarSpace) 
+;;!(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
-!(initializeStochasticSpace &grammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(extractAtomSpace &stochasticGrammarSpace)
+!(calculateProbability (junctor OR) &stochasticGrammarSpace)
+
+!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
