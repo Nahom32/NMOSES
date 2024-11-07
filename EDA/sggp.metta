@@ -177,6 +177,23 @@
 (= (generateInstances $initSymbol $space $depth)
     (collapse (generateInstancesHelper $initSymbol $space $depth))
 )
+(= (getProdRule ($parent $child) $space)
+    (let* ( 
+        ($isParentJunctor (or (== $parent AND) (== $parent OR)))
+        ($isChildJunctor (or (== $child AND) (== $child OR)))
+    )
+    (if (and $isParentJunctor $isChildJunctor)
+        (match $space (junctor junctor $value) (junctor junctor $value))
+        (if (and $isParentJunctor (not $isChildJunctor))
+            (match $space ($parent terminal $value) ($parent terminal $value))
+            (empty)
+        )
+    )
+    
+    )
+
+)
+
 
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
@@ -188,8 +205,9 @@
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
+!(getProdRule (AND OR) &stochasticGrammarSpace)
 
-!(generateInstances junctor &stochasticGrammarSpace 3)
+;;!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
