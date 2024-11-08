@@ -178,6 +178,13 @@
         (empty)
     )
 )
+;; checks whether an atom is a type of junctor
+(=(isAtomJunctor $node)
+    (if (or (== $node AND) (== $node OR))
+        True
+        False
+    )
+)
 (= (generateInstances $initSymbol $space $depth)
     (collapse (generateInstancesHelper $initSymbol $space $depth))
 )
@@ -207,7 +214,7 @@
             ($typeofHead (get-metatype $head))
         )
             (if (== $parent NONE)
-                (collapse (generateRelations (superpose $tail) $head $accum))
+                (generateRelations $tail $head $accum)
                 (if (== $typeofHead Expression)
                     (let* (
                         ($resultofSubTree (generateRelations $head $parent ()))
@@ -237,6 +244,7 @@
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 !(getProdRule (AND x) &stochasticGrammarSpace)
+!(generateRelations (AND (OR x y) x) NONE ()) 
 
 ;;!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
