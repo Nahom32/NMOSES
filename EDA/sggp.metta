@@ -4,6 +4,9 @@
 !(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
 !(bind! &alphabetSpace (new-space))
+;;concatenates two tuples.
+ (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
+
 
 ;;calculates the length of a list
 (= (length $list)
@@ -12,6 +15,7 @@
         (+ 1 (length (cdr-atom $list)))
     )
 )
+
 ;;the below function extracts the atoms from an atomspace.
 (=(extractAtomSpace $space)
     (collapse (match $space $value $value))
@@ -193,6 +197,33 @@
     )
 
 )
+;; The below implementation generates a set of relations of parents and childs
+(= (generateRelations $tree $parent $accum)
+    (if (== $tree ())
+        $accum
+        (let* (
+            ($head (car-atom $tree))
+            ($tail (cdr-atom $tree))
+            ($typeofHead (get-metatype $head))
+        )
+            (if (== $parent NONE)
+                (collapse (generateRelations (superpose $tail) $head $accum))
+                (if (== $typeofHead Expression)
+                    (let* (
+                        ($resultofSubTree (generateRelations $head $parent ()))
+                        ($newAccum (concatTuple $accum $resultofSubTree))
+                    )
+                        $newAccum
+                    )
+                    (let $newAccum (cons-atom ($parent $head) $accum)
+                        (generateRelations $tail $parent $newAccum)
+                    )
+                )
+            )
+        )
+    )
+)
+
 
 
 ;; !(sum (1 2 2 4 5))
@@ -205,7 +236,7 @@
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
-!(getProdRule (AND OR) &stochasticGrammarSpace)
+!(getProdRule (AND x) &stochasticGrammarSpace)
 
 ;;!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
