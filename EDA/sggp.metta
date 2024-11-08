@@ -220,11 +220,15 @@
                         ($resultofSubTree (generateRelations $head $parent ()))
                         ($newAccum (concatTuple $accum $resultofSubTree))
                     )
-                        $newAccum
-                    )
-                    (let $newAccum (cons-atom ($parent $head) $accum)
                         (generateRelations $tail $parent $newAccum)
                     )
+                    (let $newAccum (cons-atom ($parent $head) $accum)
+                        (if (isAtomJunctor $head)
+                            (generateRelations $tail $head $newAccum) ;;change of parent since we found a new junctor
+                            (generateRelations $tail $parent $newAccum) ;;parent still remains since we haven't found a junctor.
+                        )
+                    )
+                    
                 )
             )
         )
