@@ -4,6 +4,9 @@
 !(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
 !(bind! &alphabetSpace (new-space))
+;;concatenates two tuples.
+ (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
+
 
 ;;calculates the length of a list
 (= (length $list)
@@ -12,6 +15,7 @@
         (+ 1 (length (cdr-atom $list)))
     )
 )
+
 ;;the below function extracts the atoms from an atomspace.
 (=(extractAtomSpace $space)
     (collapse (match $space $value $value))
@@ -38,19 +42,18 @@
 )
 ;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
-    (let () (add-atom $space (junctor junctor))
-        (let () (add-atom $space (junctor AND))
-            (let () (add-atom $space (junctor OR))
-                (let () (add-atom $space (AND terminal))
-                    (let () (add-atom $space (OR terminal))
-                        (add-atom $space (NOT terminal))
-                    )
+    ;; (let () (add-atom $space (junctor junctor))
+    (let () (add-atom $space (junctor AND))
+        (let () (add-atom $space (junctor OR))
+            (let () (add-atom $space (AND terminal))
+                (let () (add-atom $space (OR terminal))
+                    (add-atom $space (NOT terminal))
                 )
             )
-
         )
-    )
 
+    )
+    ;; )
 )
 ;;The below function adds list production items to space
 (= (addListToSpace $space $list)
@@ -64,6 +67,7 @@
             (addListToSpace $space $tail)
         )
     )
+
 )
 ;;The below function filters a production rule by the left hand side.
 (= (filterProductionByLeftHandSide $space $left)
@@ -174,9 +178,71 @@
         (empty)
     )
 )
+;; checks whether an atom is a type of junctor
+(=(isAtomJunctor $node)
+    (if (or (== $node AND) (== $node OR))
+        True
+        False
+    )
+)
 (= (generateInstances $initSymbol $space $depth)
     (collapse (generateInstancesHelper $initSymbol $space $depth))
 )
+(= (getProdRule ($parent $child) $space)
+    (let* ( 
+        ($isParentJunctor (or (== $parent AND) (== $parent OR)))
+        ($isChildJunctor (or (== $child AND) (== $child OR)))
+    )
+    (if (and $isParentJunctor $isChildJunctor)
+        (match $space (junctor $isChildJunctor $value) (junctor junctor $value))
+        (if (and $isParentJunctor (not $isChildJunctor))
+            (match $space ($parent terminal $value) ($parent terminal $value))
+            (empty)
+        )
+    )
+    
+    )
+
+)
+;; adds elements of terminal set to space to pertain to the grammar.
+;; if terminals == (x y z a) (terminal x) (terminal y) (terminal z) and (terminal a) is going to be
+;; persisted.
+(= (addTerminalsToSpace $terminals $space)
+    (add-atom $space (terminal (superpose $terminals)))
+)
+;; The below implementation generates a set of relations of parents and childs as a tuple or
+;; an expression.
+(= (generateRelations $tree $parent $accum)
+    (if (== $tree ())
+        $accum
+        (let* (
+            ($head (car-atom $tree))
+            ($tail (cdr-atom $tree))
+            ($typeofHead (get-metatype $head))
+        )
+            (if (== $parent NONE)
+                (generateRelations $tail $head $accum)
+                (if (== $typeofHead Expression)
+                    (let* (
+                        ($resultofSubTree (generateRelations $head $parent ()))
+                        ($newAccum (concatTuple $accum $resultofSubTree))
+                    )
+                        (generateRelations $tail $parent $newAccum)
+                    )
+                    (let $newAccum (cons-atom ($parent $head) $accum)
+                        (if (isAtomJunctor $head)
+                            (generateRelations $tail $head $newAccum) ;;change of parent since we found a new junctor
+                            (generateRelations $tail $parent $newAccum) ;;parent still remains since we haven't found a junctor.
+                        )
+                    )
+                    
+                )
+            )
+        )
+    )
+)
+
+
 
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
@@ -188,8 +254,12 @@
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
+!(getProdRule (AND x) &stochasticGrammarSpace)
+!(generateRelations (AND (OR x y) x) NONE ()) 
+!(addTerminalsToSpace (x y z a) &grammarSpace)
+!(extractAtomSpace &grammarSpace)
 
-!(generateInstances junctor &stochasticGrammarSpace 3)
+;;!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
