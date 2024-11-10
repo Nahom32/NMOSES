@@ -204,7 +204,14 @@
     )
 
 )
-;; The below implementation generates a set of relations of parents and childs
+;; adds elements of terminal set to space to pertain to the grammar.
+;; if terminals == (x y z a) (terminal x) (terminal y) (terminal z) and (terminal a) is going to be
+;; persisted.
+(= (addTerminalsToSpace $terminals $space)
+    (add-atom $space (terminal (superpose $terminals)))
+)
+;; The below implementation generates a set of relations of parents and childs as a tuple or
+;; an expression.
 (= (generateRelations $tree $parent $accum)
     (if (== $tree ())
         $accum
