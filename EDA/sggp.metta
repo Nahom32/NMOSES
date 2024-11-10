@@ -42,19 +42,18 @@
 )
 ;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
-    (let () (add-atom $space (junctor junctor))
-        (let () (add-atom $space (junctor AND))
-            (let () (add-atom $space (junctor OR))
-                (let () (add-atom $space (AND terminal))
-                    (let () (add-atom $space (OR terminal))
-                        (add-atom $space (NOT terminal))
-                    )
+    ;; (let () (add-atom $space (junctor junctor))
+    (let () (add-atom $space (junctor AND))
+        (let () (add-atom $space (junctor OR))
+            (let () (add-atom $space (AND terminal))
+                (let () (add-atom $space (OR terminal))
+                    (add-atom $space (NOT terminal))
                 )
             )
-
         )
-    )
 
+    )
+    ;; )
 )
 ;;The below function adds list production items to space
 (= (addListToSpace $space $list)
@@ -68,6 +67,7 @@
             (addListToSpace $space $tail)
         )
     )
+
 )
 ;;The below function filters a production rule by the left hand side.
 (= (filterProductionByLeftHandSide $space $left)
@@ -194,7 +194,7 @@
         ($isChildJunctor (or (== $child AND) (== $child OR)))
     )
     (if (and $isParentJunctor $isChildJunctor)
-        (match $space (junctor junctor $value) (junctor junctor $value))
+        (match $space (junctor $isChildJunctor $value) (junctor junctor $value))
         (if (and $isParentJunctor (not $isChildJunctor))
             (match $space ($parent terminal $value) ($parent terminal $value))
             (empty)
@@ -256,6 +256,8 @@
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 !(getProdRule (AND x) &stochasticGrammarSpace)
 !(generateRelations (AND (OR x y) x) NONE ()) 
+!(addTerminalsToSpace (x y z a) &grammarSpace)
+!(extractAtomSpace &grammarSpace)
 
 ;;!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
