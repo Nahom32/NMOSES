@@ -88,8 +88,15 @@
         )
     )
 )
+(= (foldr $func $value $list)
+    (if (== $list ())
+        $value
+        (foldr $func ($func $value (car-atom $list)) (cdr-atom $list))
+    )
+)
 ;;!(countLiterals (AND A B (OR C D) E))
-!(kolmogorov (AND A B (OR C D) E))
+;; !(kolmogorov (AND A B (OR C D) E))
+!(foldr * 1 (1 2 3 4 5))
 
 ;;!(decons-atom (1 2 3 4 5))
 ;;!(tree-depth (AND x1 (OR x1 (AND x3 x4) x5)))
