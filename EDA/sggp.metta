@@ -157,17 +157,18 @@
 )
 ;; returns a non-deterministic instances stochastically
 (= (generateInstancesHelper $initSymbol $stocSpace $depth)
-    (if (>= $depth 0)
+    (if (> $depth 0)
         (if (== $initSymbol terminal)
             (match $stocSpace ($initSymbol $rhs $value) $rhs)
             (match $stocSpace ($initSymbol $rhs $value)
                 ;; (if (== $rhs junctor)
                     ;; (generateInstancesHelper $rhs $stocSpace $depth)
                 (let* (
-                    ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
-                    ($randomNumber (random))
+                        ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+                        ($randomNumber (random))
+                        ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
                     )
-                    (if (>= $prodProb $randomNumber)
+                    (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
                             ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
                             (generateInstancesHelper $rhs $stocSpace (- $depth 1))
                     )
@@ -189,15 +190,19 @@
         False
     )
 )
+;;gets a production rule from a (parent child) relationship in a syntax tree.
+;; (AND (OR x y) z)
+;; ((AND OR) (OR x) (OR y) (AND z))
+;; (AND OR) (AND x) (OR)
 (= (getProdRule ($parent $child) $space)
     (let* ( 
         ($isParentJunctor (or (== $parent AND) (== $parent OR)))
         ($isChildJunctor (or (== $child AND) (== $child OR)))
     )
     (if (and $isParentJunctor $isChildJunctor)
-        (match $space (junctor $isChildJunctor $value) (junctor junctor $value))
+        (match $space (junctor $child $weight) (junctor $child $weight))
         (if (and $isParentJunctor (not $isChildJunctor))
-            (match $space ($parent terminal $value) ($parent terminal $value))
+            (match $space ($parent terminal $weight) ($parent terminal $weight))
             (empty)
         )
     )
@@ -213,6 +218,7 @@
 )
 ;; The below implementation generates a set of relations of parents and childs as a tuple or
 ;; an expression.
+(: generateRelations (-> Expression Atom Expression Expression))
 (= (generateRelations $tree $parent $accum)
     (if (== $tree ())
         $accum
@@ -259,8 +265,8 @@
 !(generateRelations (AND (OR x y) x) NONE ()) 
 !(addTerminalsToSpace (x y z a) &grammarSpace)
 !(extractAtomSpace &grammarSpace)
-
-;;!(generateInstances junctor &stochasticGrammarSpace 3)
+!(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
+;; !(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
