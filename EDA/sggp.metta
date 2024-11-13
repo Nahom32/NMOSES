@@ -32,28 +32,27 @@
     (let () (add-atom $space junctor)
         (let () (add-atom $space AND)
             (let () (add-atom $space OR)
-            ;;    (let () 
-                    (add-atom $space NOT)
-                    ;; (add-atom $space terminal)
-            ;;    )
+              (let () (add-atom $space NOT)
+                    (add-atom $space terminal)
+                )
             )
         )
     )
 )
 ;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
-    ;; (let () (add-atom $space (junctor junctor))
-    (let () (add-atom $space (junctor AND))
-        (let () (add-atom $space (junctor OR))
-            (let () (add-atom $space (AND terminal))
-                (let () (add-atom $space (OR terminal))
-                    (add-atom $space (NOT terminal))
+    (let () (add-atom $space (junctor junctor))
+        (let () (add-atom $space (junctor AND))
+            (let () (add-atom $space (junctor OR))
+                (let () (add-atom $space (AND terminal))
+                    (let () (add-atom $space (OR terminal))
+                        (add-atom $space (NOT terminal))
+                    )
                 )
             )
-        )
 
+        )
     )
-    ;; )
 )
 ;;The below function adds list production items to space
 (= (addListToSpace $space $list)
@@ -101,17 +100,28 @@
 ;;a learn rate on how the weight changes 0 < lr < 1
 ;;cardinality is the number of chosen weights according to a probabilistic value.
 ;;type shows if it should be increased or decreased;
-(= (updateWeight $prodRule $learnRate $cardinality $type)
-    (let ($lhs $rhs $weight) $prodRule
-        (if (== $type inc)
-            (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
-                ($lhs $rhs $updatedWeight)
-            )
-            (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
-                ($lhs $rhs $updatedWeight)
-            )
-        )
-    )
+;; (= (updateWeight $prodRule $learnRate $cardinality $type)
+;;     (let ($lhs $rhs $weight) $prodRule
+;;         (if (== $type inc)
+;;             (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
+;;                 ($lhs $rhs $updatedWeight)
+;;             )
+;;             (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
+;;                 ($lhs $rhs $updatedWeight)
+;;             )
+;;         )
+;;     )
+;; )
+;;The updateWeight function is how the guided search is modified
+;;The parameters are the production rule
+;;a learn rate on how the weight changes 0 < lr < 1
+;;cardinality is the number of chosen weights according to a probabilistic value.
+;;type shows if it should be increased or decreased;
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+    (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
+)
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+    (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
 )
 ;;This function is used to extract a parent or left hand side of a context free grammar.
 (= (extractParent $exp)
@@ -161,19 +171,19 @@
         (if (== $initSymbol terminal)
             (match $stocSpace ($initSymbol $rhs $value) $rhs)
             (match $stocSpace ($initSymbol $rhs $value)
-                ;; (if (== $rhs junctor)
-                    ;; (generateInstancesHelper $rhs $stocSpace $depth)
-                (let* (
-                        ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
-                        ($randomNumber (random))
-                        ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
+                 (if (== $rhs junctor)
+                     (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+                    (let* (
+                            ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+                            ($randomNumber (random))
+                            ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
+                        )
+                        (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
+                                ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
+                                (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+                        )
                     )
-                    (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
-                            ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
-                            (generateInstancesHelper $rhs $stocSpace (- $depth 1))
-                    )
-                )
-                ;; )
+            )
             )
         )
         (empty)
@@ -258,15 +268,15 @@
 ;;!(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
+!(addTerminalsToSpace (x y z a) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 !(getProdRule (AND x) &stochasticGrammarSpace)
 !(generateRelations (AND (OR x y) x) NONE ()) 
-!(addTerminalsToSpace (x y z a) &grammarSpace)
 !(extractAtomSpace &grammarSpace)
-!(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-;; !(generateInstances junctor &stochasticGrammarSpace 3)
+;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
+!(generateInstances junctor &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
