@@ -142,14 +142,15 @@
 
 
 ;; mutateRule mutates a production rule with some mutation rate.
-(= (mutateRule $prodRule $mutationRate)
-    (let* (
-        (($lhs $rhs $weight) $prodRule) 
-        ($updatedWeight (* $weight $mutationRate))
-        )
-        ($lhs $rhs $updatedWeight)
+(= (mutateRule ($lhs $rhs $weight) $mutationRate) ($lhs $rhs (* $weight $mutationRate))
+    ;; (let* (
+    ;;     (($lhs $rhs $weight) $prodRule) 
+    ;;     ($updatedWeight (* $weight $mutationRate))
+    ;;     )
+    ;;     ($lhs $rhs $updatedWeight)
         
-    )
+    ;; )
+    
 )
 ;;This function extracts the weights of production rules from the atomspace 
 ;;The parent represents a left hand side production rule
