@@ -155,7 +155,7 @@
 ;;This function extracts the weights of production rules from the atomspace 
 ;;The parent represents a left hand side production rule
 (= (extractWeightsFromParent $parent $space)
-    (collapse (match $space ($parent $child $value) $value))
+    (collapse (match $space ($parent $child $weight) $weight))
 )
 ;; This function calculates probability of a production rule
 (= (calculateProbability ($lhs $rhs) $space)
@@ -167,30 +167,71 @@
     )
 )
 ;; returns a non-deterministic instances stochastically
-(= (generateInstancesHelper $initSymbol $stocSpace $depth)
+;; (= (generateInstancesHelper $initSymbol $stocSpace $depth)
+;;     (if (> $depth 0)
+;;         (if (== $initSymbol terminal)
+;;             (match $stocSpace ($initSymbol $rhs $value) $rhs)
+;;             (match $stocSpace ($initSymbol $rhs $value)
+;;                  (if (== $rhs junctor)
+;;                      (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+;;                     (let* (
+;;                             ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+;;                             ($randomNumber (random))
+;;                             ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
+;;                         )
+;;                         (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
+;;                                 ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
+;;                                 (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+;;                         )
+;;                     )
+;;             )
+;;             )
+;;         )
+;;         (empty)
+;;     )
+;; )
+;; =========================================================
+;; algorithm for generating instances // Exploitation purposes
+;; step 1 start from an init symbol with a depth = n.
+;; match the grammar atomspace to get matching tokens as a right handside from the context free grammar
+;; select probabilistically the production rule that passes the threshold
+;; build the tree recursively and non-deterministically. with depth (n-1)
+;; and make the rhs to lhs and start step 2
+;; Does this procedure result in a well formed tree?
+;; Do this until the depth is n = 0
+;; after finishing collapse the non-deterministic result.
+;; Question, Does this result in a well formed tree?
+;; Definition: A well formed tree is a recursive data structure were internal nodes have atleast two children 
+;; This stands out if the internal node is not a NOT junctor.
+;; If the internal node is a NOT junctor it will have a one child
+
+(=(generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth)
     (if (> $depth 0)
-        (if (== $initSymbol terminal)
-            (match $stocSpace ($initSymbol $rhs $value) $rhs)
-            (match $stocSpace ($initSymbol $rhs $value)
-                 (if (== $rhs junctor)
-                     (generateInstancesHelper $rhs $stocSpace (- $depth 1))
-                    (let* (
-                            ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
-                            ($randomNumber (random))
-                            ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
+        (let $admissibleLhs (collapse (filterProductionByLeftHandSide $grammarSpace $initSymbol)) ;;check if there are any set of lhs elements
+            (if (== $admissibleLhs ())
+                $initSymbol
+                (match $stocSpace ($initSymbol $rhs $weight)
+                    (if (== $rhs junctor)
+                        (if (> 0.5 (random)) ;; This logic is to be customized but designed to work temporarily
+                            (AND (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
+                            (OR (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) 
                         )
-                        (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
-                                ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
-                                (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+                        (let $calculatedProbability (calculateProbability ($initSymbol $rhs) $stocspace)
+                            (if (> $calculatedProbability (random))
+                                ($rhs (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
+                                (empty)
+                            )
                         )
                     )
-            )
+                    
+                )
+                
+
             )
         )
         (empty)
     )
 )
-
 (= (generateInstances $initSymbol $space $depth)
     (collapse (generateInstancesHelper $initSymbol $space $depth))
 )
