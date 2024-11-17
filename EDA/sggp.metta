@@ -32,28 +32,27 @@
     (let () (add-atom $space junctor)
         (let () (add-atom $space AND)
             (let () (add-atom $space OR)
-            ;;    (let () 
-                    (add-atom $space NOT)
-                    ;; (add-atom $space terminal)
-            ;;    )
+              (let () (add-atom $space NOT)
+                    (add-atom $space terminal)
+                )
             )
         )
     )
 )
 ;;This adds new grammar production rules into space
 (= (initializeGrammarSpace $space)
-    ;; (let () (add-atom $space (junctor junctor))
-    (let () (add-atom $space (junctor AND))
-        (let () (add-atom $space (junctor OR))
-            (let () (add-atom $space (AND terminal))
-                (let () (add-atom $space (OR terminal))
-                    (add-atom $space (NOT terminal))
+    (let () (add-atom $space (junctor junctor))
+        (let () (add-atom $space (junctor AND))
+            (let () (add-atom $space (junctor OR))
+                (let () (add-atom $space (AND terminal))
+                    (let () (add-atom $space (OR terminal))
+                        (add-atom $space (NOT terminal))
+                    )
                 )
             )
-        )
 
+        )
     )
-    ;; )
 )
 ;;The below function adds list production items to space
 (= (addListToSpace $space $list)
@@ -101,24 +100,32 @@
 ;;a learn rate on how the weight changes 0 < lr < 1
 ;;cardinality is the number of chosen weights according to a probabilistic value.
 ;;type shows if it should be increased or decreased;
-(= (updateWeight $prodRule $learnRate $cardinality $type)
-    (let ($lhs $rhs $weight) $prodRule
-        (if (== $type inc)
-            (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
-                ($lhs $rhs $updatedWeight)
-            )
-            (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
-                ($lhs $rhs $updatedWeight)
-            )
-        )
-    )
+;; (= (updateWeight $prodRule $learnRate $cardinality $type)
+;;     (let ($lhs $rhs $weight) $prodRule
+;;         (if (== $type inc)
+;;             (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality));;an update rule if production rule is chosen
+;;                 ($lhs $rhs $updatedWeight)
+;;             )
+;;             (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality));;an update mechanism if production rule isn't chosen
+;;                 ($lhs $rhs $updatedWeight)
+;;             )
+;;         )
+;;     )
+;; )
+;;The updateWeight function is how the guided search is modified
+;;The parameters are the production rule
+;;a learn rate on how the weight changes 0 < lr < 1
+;;cardinality is the number of chosen weights according to a probabilistic value.
+;;type shows if it should be increased or decreased;
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+    (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
+)
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+    (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
 )
 ;;This function is used to extract a parent or left hand side of a context free grammar.
-(= (extractParent $exp)
-    (let ($lhs $rhs) $exp
-        $lhs
-    )
-)
+(= (extractParent ($lhs $rhs)) $lhs)
+(= (extractParent ($lhs $rhs $weight)) $lhs)
 ;; the below function initializes a stochastic space.
 (= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
@@ -132,19 +139,11 @@
 
 
 ;; mutateRule mutates a production rule with some mutation rate.
-(= (mutateRule $prodRule $mutationRate)
-    (let* (
-        (($lhs $rhs $weight) $prodRule) 
-        ($updatedWeight (* $weight $mutationRate))
-        )
-        ($lhs $rhs $updatedWeight)
-        
-    )
-)
+(= (mutateRule ($lhs $rhs $weight) $mutationRate) ($lhs $rhs (* $weight $mutationRate)))
 ;;This function extracts the weights of production rules from the atomspace 
 ;;The parent represents a left hand side production rule
 (= (extractWeightsFromParent $parent $space)
-    (collapse (match $space ($parent $child $value) $value))
+    (collapse (match $space ($parent $child $weight) $weight))
 )
 ;; This function calculates probability of a production rule
 (= (calculateProbability ($lhs $rhs) $space)
@@ -156,47 +155,102 @@
     )
 )
 ;; returns a non-deterministic instances stochastically
-(= (generateInstancesHelper $initSymbol $stocSpace $depth)
-    (if (>= $depth 0)
-        (if (== $initSymbol terminal)
-            $initSymbol
-            (match $stocSpace ($initSymbol $rhs $value)
-                (if (== $rhs junctor)
-                    (generateInstancesHelper $rhs $stocSpace $depth)
-                    (let* (
-                        ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
-                        ($randomNumber (random))
+;; (= (generateInstancesHelper $initSymbol $stocSpace $depth)
+;;     (if (> $depth 0)
+;;         (if (== $initSymbol terminal)
+;;             (match $stocSpace ($initSymbol $rhs $value) $rhs)
+;;             (match $stocSpace ($initSymbol $rhs $value)
+;;                  (if (== $rhs junctor)
+;;                      (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+;;                     (let* (
+;;                             ($prodProb (calculateProbability ($initSymbol $rhs) $stocSpace))
+;;                             ($randomNumber (random))
+;;                             ($isRhsJunctor (or (== $rhs OR) (== $rhs AND))) ;; check if the rhs is a junctor.
+;;                         )
+;;                         (if (and (>= $prodProb $randomNumber) $isRhsJunctor)
+;;                                 ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
+;;                                 (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+;;                         )
+;;                     )
+;;             )
+;;             )
+;;         )
+;;         (empty)
+;;     )
+;; )
+;; =========================================================
+;; algorithm for generating instances // Exploitation purposes
+;; step 1 start from an init symbol with a depth = n.
+;; match the grammar atomspace to get matching tokens as a right handside from the context free grammar
+;; select probabilistically the production rule that passes the threshold
+;; build the tree recursively and non-deterministically. with depth (n-1)
+;; and make the rhs to lhs and start step 2
+;; Does this procedure result in a well formed tree?
+;; Do this until the depth is n = 0
+;; after finishing collapse the non-deterministic result.
+;; Question, Does this result in a well formed tree?
+;; Definition: A well formed tree is a recursive data structure were internal nodes have atleast two children 
+;; This stands out if the internal node is not a NOT junctor.
+;; If the internal node is a NOT junctor it will have a one child
+
+(= (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth)
+    (if (> $depth 0)
+        (let $admissibleLhs (collapse (filterProductionByLeftHandSide $grammarSpace $initSymbol)) ;;check if there are any set of lhs elements
+            (if (== $admissibleLhs ())
+                $initSymbol
+                (match $stocSpace ($initSymbol $rhs $weight)
+                    (if (== $rhs junctor)
+                        (if (> 0.5 (random)) ;; This logic is to be customized but designed to work temporarily
+                            (AND (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
+                            (OR (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) 
                         )
-                        (if (>= $prodProb $randomNumber)
-                                ($rhs (generateInstancesHelper $rhs $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $stocSpace (- $depth 1)))
-                                (generateInstancesHelper $rhs $stocSpace (- $depth 1))
+                        ;; (let $probValue (calculateProbability ()))
+                        (let () (println! (the calculatedProbability is (calculateProbability ($initSymbol $rhs) $stocSpace)))
+                            (let* (
+                                ($result (calculateProbability ($initSymbol $rhs) $stocSpace))
+                                ($randomValue (random))
+                                )
+                                (if (and (>= $result $randomValue) (isAtomJunctor $rhs))
+                                    ($rhs (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
+                                    (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
+                                )
+                            )
                         )
                     )
+                    
                 )
+                
+
             )
         )
-        (empty)
+        (match $stocSpace (terminal $rhs $weight)
+            $rhs
+        )
     )
 )
+(= (generateInstances $initSymbol $grammarSpace $stocSpace $depth)
+    (collapse (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth))
+)
 ;; checks whether an atom is a type of junctor
-(=(isAtomJunctor $node)
+(= (isAtomJunctor $node)
     (if (or (== $node AND) (== $node OR))
         True
         False
     )
 )
-(= (generateInstances $initSymbol $space $depth)
-    (collapse (generateInstancesHelper $initSymbol $space $depth))
-)
+;;gets a production rule from a (parent child) relationship in a syntax tree.
+;; (AND (OR x y) z)
+;; ((AND OR) (OR x) (OR y) (AND z))
+;; (AND OR) (AND x) (OR)
 (= (getProdRule ($parent $child) $space)
     (let* ( 
         ($isParentJunctor (or (== $parent AND) (== $parent OR)))
         ($isChildJunctor (or (== $child AND) (== $child OR)))
     )
     (if (and $isParentJunctor $isChildJunctor)
-        (match $space (junctor $isChildJunctor $value) (junctor junctor $value))
+        (match $space (junctor $child $weight) (junctor $child $weight))
         (if (and $isParentJunctor (not $isChildJunctor))
-            (match $space ($parent terminal $value) ($parent terminal $value))
+            (match $space ($parent terminal $weight) ($parent terminal $weight))
             (empty)
         )
     )
@@ -212,6 +266,7 @@
 )
 ;; The below implementation generates a set of relations of parents and childs as a tuple or
 ;; an expression.
+(: generateRelations (-> Expression Atom Expression Expression))
 (= (generateRelations $tree $parent $accum)
     (if (== $tree ())
         $accum
@@ -241,6 +296,13 @@
         )
     )
 )
+;; The below function updates the production rule given the previously available rule
+;; and the current rule.
+(= (updateAtomSpace $space $previousRule $currentRule)
+    (let () (remove-atom $space $previousRule)
+        (add-atom $space $currentRule)
+    )
+)
 
 
 
@@ -248,26 +310,17 @@
 !(initializeAlphabetSpace &alphabetSpace)
 !(extractAtomSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace) 
-;;!(filterProductionByLeftHandSide &grammarSpace terminal)
+!(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
+!(addTerminalsToSpace (x y z a) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 !(getProdRule (AND x) &stochasticGrammarSpace)
 !(generateRelations (AND (OR x y) x) NONE ()) 
-!(addTerminalsToSpace (x y z a) &grammarSpace)
 !(extractAtomSpace &grammarSpace)
-
-;;!(generateInstances junctor &stochasticGrammarSpace 3)
+;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
+!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 4)
+;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
-
-;; (= (calculateProbability $space $productionRule)
-;;     ()
-;; )
-
-;; (= (initializeSGSpace $grammarSpace $sgSpace)
-;;    () 
-;; )
-;; !(rand 5 15)
-
