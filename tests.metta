@@ -25,3 +25,4 @@
     ((junctor junctor 10) (junctor AND 10) (junctor OR 10)) 
     ((AND terminal 9))
 )
+;; ((if True (OR (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1)) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))))

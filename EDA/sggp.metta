@@ -321,6 +321,6 @@
 !(generateRelations (AND (OR x y) x) NONE ()) 
 !(extractAtomSpace &grammarSpace)
 ;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 1)
+!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 4)
 ;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
