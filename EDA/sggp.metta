@@ -193,7 +193,7 @@
 ;; This stands out if the internal node is not a NOT junctor.
 ;; If the internal node is a NOT junctor it will have a one child
 
-(=(generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth)
+(= (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth)
     (if (> $depth 0)
         (let $admissibleLhs (collapse (filterProductionByLeftHandSide $grammarSpace $initSymbol)) ;;check if there are any set of lhs elements
             (if (== $admissibleLhs ())
@@ -204,10 +204,16 @@
                             (AND (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
                             (OR (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) 
                         )
-                        (let $calculatedProbability (calculateProbability ($initSymbol $rhs) $stocSpace)
-                            (if (> $calculatedProbability (random))
-                                ($rhs (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
-                                (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
+                        ;; (let $probValue (calculateProbability ()))
+                        (let () (println! (the calculatedProbability is (calculateProbability ($initSymbol $rhs) $stocSpace)))
+                            (let* (
+                                ($result (calculateProbability ($initSymbol $rhs) $stocSpace))
+                                ($randomValue (random))
+                                )
+                                (if (and (>= $result $randomValue) (isAtomJunctor $rhs))
+                                    ($rhs (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
+                                    (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
+                                )
                             )
                         )
                     )
@@ -217,7 +223,9 @@
 
             )
         )
-        $initSymbol
+        (match $stocSpace (terminal $rhs $weight)
+            $rhs
+        )
     )
 )
 (= (generateInstances $initSymbol $grammarSpace $stocSpace $depth)
@@ -288,6 +296,13 @@
         )
     )
 )
+;; The below function updates the production rule given the previously available rule
+;; and the current rule.
+(= (updateAtomSpace $space $previousRule $currentRule)
+    (let () (remove-atom $space $previousRule)
+        (add-atom $space $currentRule)
+    )
+)
 
 
 
@@ -295,7 +310,7 @@
 !(initializeAlphabetSpace &alphabetSpace)
 !(extractAtomSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace) 
-;;!(filterProductionByLeftHandSide &grammarSpace terminal)
+!(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
 !(addTerminalsToSpace (x y z a) &grammarSpace)
@@ -306,15 +321,6 @@
 !(generateRelations (AND (OR x y) x) NONE ()) 
 !(extractAtomSpace &grammarSpace)
 ;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 3)
+!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 1)
+;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
-
-;; (= (calculateProbability $space $productionRule)
-;;     ()
-;; )
-
-;; (= (initializeSGSpace $grammarSpace $sgSpace)
-;;    () 
-;; )
-;; !(rand 5 15)
-
