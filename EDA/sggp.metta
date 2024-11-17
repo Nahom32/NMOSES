@@ -124,11 +124,8 @@
     (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
 )
 ;;This function is used to extract a parent or left hand side of a context free grammar.
-(= (extractParent $exp)
-    (let ($lhs $rhs) $exp
-        $lhs
-    )
-)
+(= (extractParent ($lhs $rhs)) $lhs)
+(= (extractParent ($lhs $rhs $weight)) $lhs)
 ;; the below function initializes a stochastic space.
 (= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
@@ -142,16 +139,7 @@
 
 
 ;; mutateRule mutates a production rule with some mutation rate.
-(= (mutateRule ($lhs $rhs $weight) $mutationRate) ($lhs $rhs (* $weight $mutationRate))
-    ;; (let* (
-    ;;     (($lhs $rhs $weight) $prodRule) 
-    ;;     ($updatedWeight (* $weight $mutationRate))
-    ;;     )
-    ;;     ($lhs $rhs $updatedWeight)
-        
-    ;; )
-    
-)
+(= (mutateRule ($lhs $rhs $weight) $mutationRate) ($lhs $rhs (* $weight $mutationRate)))
 ;;This function extracts the weights of production rules from the atomspace 
 ;;The parent represents a left hand side production rule
 (= (extractWeightsFromParent $parent $space)
@@ -216,10 +204,10 @@
                             (AND (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)))
                             (OR (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1)) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) 
                         )
-                        (let $calculatedProbability (calculateProbability ($initSymbol $rhs) $stocspace)
+                        (let $calculatedProbability (calculateProbability ($initSymbol $rhs) $stocSpace)
                             (if (> $calculatedProbability (random))
                                 ($rhs (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))) (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
-                                (empty)
+                                (generateInstancesHelper $rhs $grammarSpace $stocSpace (- $depth 1))
                             )
                         )
                     )
@@ -229,11 +217,11 @@
 
             )
         )
-        (empty)
+        $initSymbol
     )
 )
-(= (generateInstances $initSymbol $space $depth)
-    (collapse (generateInstancesHelper $initSymbol $space $depth))
+(= (generateInstances $initSymbol $grammarSpace $stocSpace $depth)
+    (collapse (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth))
 )
 ;; checks whether an atom is a type of junctor
 (= (isAtomJunctor $node)
@@ -318,7 +306,7 @@
 !(generateRelations (AND (OR x y) x) NONE ()) 
 !(extractAtomSpace &grammarSpace)
 ;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-!(generateInstances junctor &stochasticGrammarSpace 3)
+!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 3)
 ;; !(initializeStochasticSpace &grammarSpace)
 
 ;; (= (calculateProbability $space $productionRule)
