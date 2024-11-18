@@ -224,7 +224,10 @@
             )
         )
         (match $stocSpace (terminal $rhs $weight)
-            $rhs
+            (if (> (calculateProbability (terminal $rhs) $stocSpace) (random))
+                $rhs
+                (empty)
+            )
         )
     )
 )
