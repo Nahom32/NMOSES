@@ -307,6 +307,30 @@
     )
 )
 
+(= (isWellFormed $tree)
+    (if (> (length $tree) 0)
+        (let* (
+                ($head (car-atom $tree))
+                ($tail (cdr-atom $tree))
+                ($isHeadJunctor (isAtomJunctor $head))
+                ($lengthTail (length $tail))
+            )
+                (if (and $isHeadJunctor (>= (length $tail) 2))
+                    (isWellFormed $tail)
+                    (if $isHeadJunctor
+                        False
+                        True
+                    )
+                    
+                )
+
+        )
+        True
+    )
+      
+)
+
+
 
 
 ;; !(sum (1 2 2 4 5))
