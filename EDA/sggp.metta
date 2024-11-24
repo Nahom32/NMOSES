@@ -232,7 +232,7 @@
     )
 )
 (= (generateInstances $initSymbol $grammarSpace $stocSpace $depth)
-    (collapse (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth))
+    (collapse (unique (generateInstancesHelper $initSymbol $grammarSpace $stocSpace $depth)))
 )
 ;; checks whether an atom is a type of junctor
 (= (isAtomJunctor $node)
@@ -319,7 +319,7 @@
                     (isWellFormed $tail)
                     (if $isHeadJunctor
                         False
-                        True
+                        (isWellFormed $tail)
                     )
                     
                 )
@@ -340,7 +340,7 @@
 !(filterProductionByLeftHandSide &grammarSpace terminal)
 !(updateWeight (AND terminal 6) 0.001 7 dec)
 !(mutateRule (AND terminal 4) 0.7)
-!(addTerminalsToSpace (x y z a) &grammarSpace)
+!(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(extractAtomSpace &stochasticGrammarSpace)
 !(calculateProbability (junctor OR) &stochasticGrammarSpace)
@@ -348,6 +348,8 @@
 !(generateRelations (AND (OR x y) x) NONE ()) 
 !(extractAtomSpace &grammarSpace)
 ;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 4)
+!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 3)
+;; !(isWellFormed (AND x (OR x y)))
+;; !(isWellFormed (AND x y (OR x)))
 ;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
