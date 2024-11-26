@@ -329,7 +329,16 @@
     )
       
 )
-
+;; This is the main sggp function that is going to called for the main optimization algorithm
+(= (sggpMain $learnRate $mutationRate $thresholdProb $grammarSpace $alphabetSpace $stocSpace $maxRecur $scoreFunc $terminals)
+    (let () (initializeAlphabetSpace $alphabetSpace)
+        (let () (initializeGrammarSpace $grammarSpace)
+            (let () (initializeStochasticSpace $stocSpace)
+                (sggpHelper $learnRate $mutationRate $thresholdProb $grammarSpace $alphabetSpace $stocSpace $maxRecur $scoreFunc $terminals)
+            )
+        )
+    )
+)
 
 
 
