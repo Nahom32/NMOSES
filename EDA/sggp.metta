@@ -330,13 +330,46 @@
       
 )
 ;; This is the main sggp function that is going to called for the main optimization algorithm
-(= (sggpMain $learnRate $mutationRate $thresholdProb $grammarSpace $alphabetSpace $stocSpace $maxRecur $scoreFunc $terminals)
-    (let () (initializeAlphabetSpace $alphabetSpace)
-        (let () (initializeGrammarSpace $grammarSpace)
-            (let () (initializeStochasticSpace $stocSpace)
-                (sggpHelper $learnRate $mutationRate $thresholdProb $grammarSpace $alphabetSpace $stocSpace $maxRecur $scoreFunc $terminals)
+(= (sggpMain $learnRate $mutationRate $thresholdProb $maxRecur  $maxDepth $terminals)
+    (let () (initializeAlphabetSpace &alphabetSpace)
+        (let () (initializeGrammarSpace &grammarSpace)
+            (let () (addTerminalsToSpace $terminals &grammarSpace)
+                (let () (initializeStochasticSpace &stochasticGrammarSpace)
+                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $terminals)
+                )
             )
         )
+    )
+)
+;; this is a scoring function that is used a mimicker for the real scoring function. 
+(= (Score $tree)
+    (random)
+)
+;; a helper function that extracts the least after checking with the threshold
+(= (filter <= $func $expression $threshold)
+    (if (<= ($func $expression) $threshold)
+        (empty)
+        $expression
+    )
+)
+;; a helper that extracts the best after comparing with the threshold.
+(= (filter > $func $expression $threshold)
+    (if ( > ($func $expression) $threshold)
+        (empty)
+        $expression
+    )
+)
+(= (filterList $func $compSign $expressions $threshold)
+    (collapse (filter $compSign $func (superpose $expressions) $threshold))
+)
+(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $scoreFunc $terminals)
+    (if (> $maxRecur 0)
+        (let* (
+            ($generatedInstances (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxRecur $maxDepth))
+            ($filteredTrees (filterList $scoreFunc $generatedInstances $thresholdProb))
+            ()
+
+        ))
     )
 )
 
