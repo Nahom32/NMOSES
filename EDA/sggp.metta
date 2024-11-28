@@ -374,9 +374,26 @@
         (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     )
 )
-(= (reinforceGrammarbasedOnTree $tree $stocSpace)
-
+;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
+(= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (generateRelations $tree))
+        ($prodRules (collapse (getprodRule (superpose $relations))))
+        
+    )
+        (collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
 )
+;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
+(= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (generateRelations $tree))
+        ($prodRules (collapse (getProdRule (superpose $relations))))
+    )
+        (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
+)
+;; This is the sggpHelper function that is called recursively and returns results on the sggpMain.
 (= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc $terminals)
     (if (> $maxRecur 0)
         (let* (
@@ -385,9 +402,10 @@
             ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
             ($lenGood (length $goodTrees))
             ($lenBad (length $badTrees))
-            ()
+            ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &stochasticGrammarSpace)))
+            ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &stochasticGrammarSpace)))
         )
-            
+            (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $maxDepth $scoreFunc $terminals)
             
         )
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
