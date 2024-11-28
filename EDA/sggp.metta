@@ -335,7 +335,7 @@
         (let () (initializeGrammarSpace &grammarSpace)
             (let () (addTerminalsToSpace $terminals &grammarSpace)
                 (let () (initializeStochasticSpace &stochasticGrammarSpace)
-                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $terminals)
+                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $terminals)
                 )
             )
         )
@@ -346,30 +346,51 @@
     (random)
 )
 ;; a helper function that extracts the least after checking with the threshold
-(= (filter <= $func $expression $threshold)
-    (if (<= ($func $expression) $threshold)
+(= (filter < $func $expression $threshold)
+    (if (< ($func $expression) $threshold)
         (empty)
         $expression
     )
 )
 ;; a helper that extracts the best after comparing with the threshold.
-(= (filter > $func $expression $threshold)
-    (if ( > ($func $expression) $threshold)
+(= (filter >= $func $expression $threshold)
+    (if ( >= ($func $expression) $threshold)
         (empty)
         $expression
     )
 )
-(= (filterList $func $compSign $expressions $threshold)
+(= (filterList $compSign $func $expressions $threshold)
     (collapse (filter $compSign $func (superpose $expressions) $threshold))
 )
-(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $scoreFunc $terminals)
+;;This procedure implements the reinforcing the production rule that is available.
+(= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    )
+)
+;; This procedure implements the punishing a specific production rule that is available.
+(= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    )
+)
+(= (reinforceGrammarbasedOnTree $tree $stocSpace)
+
+)
+(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc $terminals)
     (if (> $maxRecur 0)
         (let* (
-            ($generatedInstances (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxRecur $maxDepth))
-            ($filteredTrees (filterList $scoreFunc $generatedInstances $thresholdProb))
+            ($generatedInstances (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth))
+            ($goodTrees (filterList >= $scoreFunc $generatedInstances $thresholdProb))
+            ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
+            ($lenGood (length $goodTrees))
+            ($lenBad (length $badTrees))
             ()
-
-        ))
+        )
+            
+            
+        )
+        (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
 
