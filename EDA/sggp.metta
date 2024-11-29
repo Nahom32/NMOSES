@@ -346,15 +346,15 @@
     (random)
 )
 ;; a helper function that extracts the least after checking with the threshold
-(= (filter < $func $expression $threshold)
-    (if (< ($func $expression) $threshold)
-        (empty)
-        $expression
-    )
-)
+;; (= (filter < $func $expression $threshold)
+;;     (if (< ($func $expression) $threshold)
+;;         (empty)
+;;         $expression
+;;     )
+; )
 ;; a helper that extracts the best after comparing with the threshold.
-(= (filter >= $func $expression $threshold)
-    (if ( >= ($func $expression) $threshold)
+(= (filter $compSign $func $expression $threshold)
+    (if ( $compSign ($func $expression) $threshold)
         (empty)
         $expression
     )
@@ -411,7 +411,8 @@
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
-!(sggpMain 0.01 0.001 0.5 3 3 score (x y))
+;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
+!(filterList < score (0.3 0.1 0.8 0.6) 0.5)
 
 
 
