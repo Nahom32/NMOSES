@@ -269,7 +269,7 @@
 )
 ;; The below implementation generates a set of relations of parents and childs as a tuple or
 ;; an expression.
-(: generateRelations (-> Expression Atom Expression Expression))
+;; (: generateRelations (-> Expression Atom Expression Expression))
 (= (generateRelations $tree $parent $accum)
     (if (== $tree ())
         $accum
@@ -365,13 +365,13 @@
 ;;This procedure implements the reinforcing the production rule that is available.
 (= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
-        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     )
 )
 ;; This procedure implements the punishing a specific production rule that is available.
 (= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
-        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     )
 )
 ;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
@@ -411,7 +411,7 @@
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
-!(sggpMain 0.01 0.001 0.5 3 3 score (x y))
+;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
 ;; !(filterList < score (0.3 0.1 0.8 0.6) 0.5)
 
 
@@ -424,11 +424,17 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace terminal)
 ;; !(updateWeight (AND terminal 6) 0.001 7 dec)
 ;; !(mutateRule (AND terminal 4) 0.7)
-!(generateRelations (OR x (AND y z) a) NONE ())
-!(addTerminalsToSpace (x y) &grammarSpace)
-!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
-!(extractAtomSpace &stochasticGrammarSpace)
+;; !(generateRelations (OR x (AND y z) a) NONE ())
+;; !(addTerminalsToSpace (x y) &grammarSpace)
+ !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+ !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
+ !(extractAtomSpace &stochasticGrammarSpace)
+;; !(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
+;; !(extractAtomSpace &stochasticGrammarSpace)!(generateRelations (OR x (AND y z) a) NONE ())
+;; !(addTerminalsToSpace (x y) &grammarSpace)
+;; !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+;; !(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
+;; !(extractAtomSpace &stochasticGrammarSpace)
 ;; !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 ;; !(getProdRule (AND x) &stochasticGrammarSpace)
 ;; !(generateRelations (AND (OR x y) x) NONE ()) 
