@@ -377,7 +377,7 @@
 ;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
 (= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
     (let* (
-        ($relations (generateRelations $tree))
+        ($relations (generateRelations $tree NONE ()))
         ($prodRules (collapse (getprodRule (superpose $relations))))
         
     )
@@ -387,7 +387,7 @@
 ;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
 (= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
     (let* (
-        ($relations (generateRelations $tree))
+        ($relations (generateRelations $tree NONE ()))
         ($prodRules (collapse (getProdRule (superpose $relations))))
     )
         (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
@@ -411,21 +411,24 @@
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
-;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
-!(filterList < score (0.3 0.1 0.8 0.6) 0.5)
+!(sggpMain 0.01 0.001 0.5 3 3 score (x y))
+;; !(filterList < score (0.3 0.1 0.8 0.6) 0.5)
 
 
 
 ;; !(sum (1 2 2 4 5))
-;; !(initializeAlphabetSpace &alphabetSpace)
-;; !(extractAtomSpace &alphabetSpace)
-;; !(initializeGrammarSpace &grammarSpace) 
+!(initializeAlphabetSpace &alphabetSpace)
+!(extractAtomSpace &alphabetSpace)
+!(initializeGrammarSpace &grammarSpace)
+
 ;; !(filterProductionByLeftHandSide &grammarSpace terminal)
 ;; !(updateWeight (AND terminal 6) 0.001 7 dec)
 ;; !(mutateRule (AND terminal 4) 0.7)
-;; !(addTerminalsToSpace (x y) &grammarSpace)
-;; !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-;; !(extractAtomSpace &stochasticGrammarSpace)
+!(generateRelations (OR x (AND y z) a) NONE ())
+!(addTerminalsToSpace (x y) &grammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
+!(extractAtomSpace &stochasticGrammarSpace)
 ;; !(calculateProbability (junctor OR) &stochasticGrammarSpace)
 ;; !(getProdRule (AND x) &stochasticGrammarSpace)
 ;; !(generateRelations (AND (OR x y) x) NONE ()) 
