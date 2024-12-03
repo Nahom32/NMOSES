@@ -306,6 +306,32 @@
         (add-atom $space $currentRule)
     )
 )
+(= (selectK $list $k $accum)
+    (if ( <= (length $list) $k)
+        $list
+        (if (== $k 0)
+            $accum
+            (let* (
+                ($head (car-atom $list)) 
+                ($tail (cdr-atom $list)) 
+            )
+                (selectK $tail (- $k 1) (cons-atom $head $accum))
+            )
+        )
+
+    )
+)
+;; This piece of code is an algorithm that exploits a single instance from a stochastic grammar
+;; The algorithm goes as follows:
+;; it takes an initial symbol
+;; searchs for the possible right most derivations
+;; calculates the probabilities of the derivations
+;; takes the suitable derivations which fulfill the threshold probabilities
+;; chooses grammar instances that less than or equal to the exploration coefficient.
+
+(= (exploitAsingleInstances $initSymbol $stocSpace $explorationCoeff)
+    (if ())
+)
 
 (= (isWellFormed $tree)
     (if (> (length $tree) 0)
@@ -418,7 +444,7 @@
 
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
-!(extractAtomSpace &alphabetSpace)
+;; !(extractAtomSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 
 ;; !(filterProductionByLeftHandSide &grammarSpace terminal)
@@ -426,9 +452,13 @@
 ;; !(mutateRule (AND terminal 4) 0.7)
 ;; !(generateRelations (OR x (AND y z) a) NONE ())
 ;; !(addTerminalsToSpace (x y) &grammarSpace)
- !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
- !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
- !(extractAtomSpace &stochasticGrammarSpace)
+!(addTerminalsSpace (x y) &grammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(sggpHelper 0.01 0.001 0.5 3 3 score)
+;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
+;;  !(extractAtomSpace &stochasticGrammarSpace)
+;;  !(updateAtomSpace &grammarSpace (AND terminal) (AND Terminal))
+;;  !(extractAtomSpace &grammarSpace)
 ;; !(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
 ;; !(extractAtomSpace &stochasticGrammarSpace)!(generateRelations (OR x (AND y z) a) NONE ())
 ;; !(addTerminalsToSpace (x y) &grammarSpace)
