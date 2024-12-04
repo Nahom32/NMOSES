@@ -331,31 +331,46 @@
 ;; calculates the probabilities of the derivations
 ;; takes the suitable derivations which fulfill the threshold probabilities
 ;; choose grammar instances that less than or equal to the exploration coefficient.
-;; builds program trees based on the learn't values.
-;; 
+;; builds program trees based on the chosen values.
+
 (= (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
     (if (> $depth 0)
         (let $admissibleDerivs (filterProductionByLeftHandSide $grammarSpace $initSymbol)
             (if (== $admissibleDerivs ())
-                (match $stocSpace (terminal $x $weight)
-                    ;; (superpose (selectK (collapse $x) $explorationCoeff ()))
-                    (let $probOfTerminal (calculateProbability (terminal $x) $stocSpace)
-                        (if (>= $probOfTerminal (random))
-                            $x
-                            (empty)
-                        )
-                    )
-                )
+                ;; (match $stocSpace (terminal $x $weight)
+                ;;     ;; (superpose (selectK (collapse $x) $explorationCoeff ()))
+                ;;     (let $probOfTerminal (calculateProbability (terminal $x) $stocSpace)
+                ;;         (if (>= $probOfTerminal (random))
+                ;;             $x
+                ;;             (empty)
+                ;;         )
+                ;;     )
+                ;; )
+                $initSymbol
                 (let* (
                     ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
-                    ($selectedRules (selectK $availableRules $explorationCoeff ()))
+                    (($lhs $rhs $weight) (superpose (selectK $availableRules $explorationCoeff ())))
+                    ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
-                    $selectedRules
+                    (if (>= $calculatedProbability (random))
+                        (if (== $lhs junctor)
+                            (if (>= (random) 0.5)
+                                (AND (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)) (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                (OR (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)) (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                            )
+                            (if (isAtomJunctor $lhs)
+                                ($lhs (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)) (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+
+                            )
+                        )
+                        (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                    )
                 )
 
             )
         )
-        $initSymbol
+        (empty)
 
     )
 )
