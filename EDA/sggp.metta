@@ -321,16 +321,43 @@
 
     )
 )
+(= (findSuitableProdRules $lhs $stocSpace)
+    (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
+)
 ;; This piece of code is an algorithm that exploits a single instance from a stochastic grammar
 ;; The algorithm goes as follows:
 ;; it takes an initial symbol
 ;; searchs for the possible right most derivations
 ;; calculates the probabilities of the derivations
 ;; takes the suitable derivations which fulfill the threshold probabilities
-;; chooses grammar instances that less than or equal to the exploration coefficient.
+;; choose grammar instances that less than or equal to the exploration coefficient.
+;; builds program trees based on the learn't values.
+;; 
+(= (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (if (> $depth 0)
+        (let $admissibleDerivs (filterProductionByLeftHandSide $grammarSpace $initSymbol)
+            (if (== $admissibleDerivs ())
+                (match $stocSpace (terminal $x $weight)
+                    ;; (superpose (selectK (collapse $x) $explorationCoeff ()))
+                    (let $probOfTerminal (calculateProbability (terminal $x) $stocSpace)
+                        (if (>= $probOfTerminal (random))
+                            $x
+                            (empty)
+                        )
+                    )
+                )
+                (let* (
+                    ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
+                    ($selectedRules (selectK $availableRules $explorationCoeff ()))
+                )
+                    $selectedRules
+                )
 
-(= (exploitAsingleInstances $initSymbol $stocSpace $explorationCoeff)
-    (if ())
+            )
+        )
+        $initSymbol
+
+    )
 )
 
 (= (isWellFormed $tree)
@@ -437,6 +464,7 @@
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
+
 ;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
 ;; !(filterList < score (0.3 0.1 0.8 0.6) 0.5)
 
@@ -444,17 +472,18 @@
 
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
-;; !(extractAtomSpace &alphabetSpace)
+!(extractAtomSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 
 ;; !(filterProductionByLeftHandSide &grammarSpace terminal)
 ;; !(updateWeight (AND terminal 6) 0.001 7 dec)
 ;; !(mutateRule (AND terminal 4) 0.7)
 ;; !(generateRelations (OR x (AND y z) a) NONE ())
-;; !(addTerminalsToSpace (x y) &grammarSpace)
-!(addTerminalsSpace (x y) &grammarSpace)
+!(addTerminalsToSpace (x y) &grammarSpace)
+;; !(addTerminalsSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(sggpHelper 0.01 0.001 0.5 3 3 score)
+!(exploitInstances junctor &grammarSpace &stochasticGrammarSpace 2 3)
+;; !(sggpHelper 0.01 0.001 0.5 3 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
 ;;  !(updateAtomSpace &grammarSpace (AND terminal) (AND Terminal))
@@ -475,3 +504,6 @@
 ;; !(isWellFormed (AND x y (OR x)))
 ;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
+!(selectK (1 2 3 4 5 6) 3 ())
+!(selectK (1 2 3 4 5) 6 ())
+
