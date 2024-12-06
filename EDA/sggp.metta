@@ -337,19 +337,11 @@
     (if (> $depth 0)
         (let $admissibleDerivs (filterProductionByLeftHandSide $grammarSpace $initSymbol)
             (if (== $admissibleDerivs ())
-                ;; (match $stocSpace (terminal $x $weight)
-                ;;     ;; (superpose (selectK (collapse $x) $explorationCoeff ()))
-                ;;     (let $probOfTerminal (calculateProbability (terminal $x) $stocSpace)
-                ;;         (if (>= $probOfTerminal (random))
-                ;;             $x
-                ;;             (empty)
-                ;;         )
-                ;;     )
-                ;; )
                 $initSymbol
                 (let* (
                     ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
-                    (($lhs $rhs $weight) (superpose (selectK $availableRules $explorationCoeff ())))
+                    ($kRules (selectK $availableRules $explorationCoeff ()))
+                    (($lhs $rhs $weight) (superpose $kRules))
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
                     (if (>= $calculatedProbability (random))
@@ -366,6 +358,7 @@
                         )
                         (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
                     )
+                    ;; ($lhs $rhs $calculatedProbability)
                 )
 
             )
