@@ -269,7 +269,7 @@
 )
 ;; The below implementation generates a set of relations of parents and childs as a tuple or
 ;; an expression.
-(: generateRelations (-> Expression Atom Expression Expression))
+;; (: generateRelations (-> Expression Atom Expression Expression))
 (= (generateRelations $tree $parent $accum)
     (if (== $tree ())
         $accum
@@ -306,6 +306,77 @@
         (add-atom $space $currentRule)
     )
 )
+(= (selectK $list $k $accum)
+    (if ( <= (length $list) $k)
+        $list
+        (if (== $k 0)
+            $accum
+            (let* (
+                ($head (car-atom $list)) 
+                ($tail (cdr-atom $list)) 
+            )
+                (selectK $tail (- $k 1) (cons-atom $head $accum))
+            )
+        )
+
+    )
+)
+(= (findSuitableProdRules $lhs $stocSpace)
+    (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
+)
+;; This piece of code is an algorithm that exploits a single instance from a stochastic grammar
+;; The algorithm goes as follows:
+;; it takes an initial symbol
+;; searchs for the possible right most derivations
+;; calculates the probabilities of the derivations
+;; takes the suitable derivations which fulfill the threshold probabilities
+;; choose grammar instances that less than or equal to the exploration coefficient.
+;; builds program trees based on the chosen values.
+
+(= (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (if (> $depth 0)
+        (let $admissibleDerivs (filterProductionByLeftHandSide $grammarSpace $initSymbol)
+            (if (== $admissibleDerivs ())
+                $initSymbol
+                (let* (
+                    ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
+                    ($kRules (selectK $availableRules $explorationCoeff ()))
+                    (($lhs $rhs $weight) (superpose $kRules))
+                    ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
+                )
+                    (if (>= $calculatedProbability (random))
+                        (let* ( 
+                                ($subTreeDerivationLeft (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                ($subTreeDerivationRight (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+
+                            )
+                            (if (== $lhs junctor)
+                                (if (>= (random) 0.5)
+                                    (AND $subTreeDerivationLeft $subTreeDerivationRight)
+                                    (OR $subTreeDerivationLeft $subTreeDerivationRight)
+                                )
+                                (if (isAtomJunctor $lhs)
+                                    ($lhs $subTreeDerivationLeft $subTreeDerivationRight)  
+                                    $subTreeDerivationLeft
+                                )
+                            )
+                        )
+                        (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                    )
+                    
+                )
+
+            )
+        )
+        (match $stocSpace (terminal $value $score)
+            $value
+        )
+
+    )
+)
+(= (exploitInstanceMain $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (collapse (unique (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)))
+)
 
 (= (isWellFormed $tree)
     (if (> (length $tree) 0)
@@ -330,31 +401,31 @@
       
 )
 ;; This is the main sggp function that is going to called for the main optimization algorithm
-(= (sggpMain $learnRate $mutationRate $thresholdProb $maxRecur  $maxDepth $terminals)
+(= (sggpMain $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc $terminals)
     (let () (initializeAlphabetSpace &alphabetSpace)
         (let () (initializeGrammarSpace &grammarSpace)
             (let () (addTerminalsToSpace $terminals &grammarSpace)
                 (let () (initializeStochasticSpace &stochasticGrammarSpace)
-                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $terminals)
+                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc)
                 )
             )
         )
     )
 )
 ;; this is a scoring function that is used a mimicker for the real scoring function. 
-(= (Score $tree)
+(= (score $tree)
     (random)
 )
 ;; a helper function that extracts the least after checking with the threshold
-(= (filter < $func $expression $threshold)
-    (if (< ($func $expression) $threshold)
-        (empty)
-        $expression
-    )
-)
+;; (= (filter < $func $expression $threshold)
+;;     (if (< ($func $expression) $threshold)
+;;         (empty)
+;;         $expression
+;;     )
+; )
 ;; a helper that extracts the best after comparing with the threshold.
-(= (filter >= $func $expression $threshold)
-    (if ( >= ($func $expression) $threshold)
+(= (filter $compSign $func $expression $threshold)
+    (if ( $compSign ($func $expression) $threshold)
         (empty)
         $expression
     )
@@ -365,19 +436,19 @@
 ;;This procedure implements the reinforcing the production rule that is available.
 (= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
-        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     )
 )
 ;; This procedure implements the punishing a specific production rule that is available.
 (= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
-        (updateAtomSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
-    )
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
 )
 ;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
 (= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
     (let* (
-        ($relations (generateRelations $tree))
+        ($relations (generateRelations $tree NONE ()))
         ($prodRules (collapse (getprodRule (superpose $relations))))
         
     )
@@ -387,14 +458,14 @@
 ;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
 (= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
     (let* (
-        ($relations (generateRelations $tree))
+        ($relations (generateRelations $tree NONE ()))
         ($prodRules (collapse (getProdRule (superpose $relations))))
     )
         (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
     )
 )
 ;; This is the sggpHelper function that is called recursively and returns results on the sggpMain.
-(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc $terminals)
+(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc)
     (if (> $maxRecur 0)
         (let* (
             ($generatedInstances (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth))
@@ -405,32 +476,52 @@
             ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &stochasticGrammarSpace)))
             ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &stochasticGrammarSpace)))
         )
-            (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $maxDepth $scoreFunc $terminals)
+            (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $maxDepth $scoreFunc)
             
         )
         (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
     )
 )
 
+;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
+;; !(filterList < score (0.3 0.1 0.8 0.6) 0.5)
+
 
 
 ;; !(sum (1 2 2 4 5))
 !(initializeAlphabetSpace &alphabetSpace)
 !(extractAtomSpace &alphabetSpace)
-!(initializeGrammarSpace &grammarSpace) 
-!(filterProductionByLeftHandSide &grammarSpace terminal)
-!(updateWeight (AND terminal 6) 0.001 7 dec)
-!(mutateRule (AND terminal 4) 0.7)
+!(initializeGrammarSpace &grammarSpace)
+
+;; !(filterProductionByLeftHandSide &grammarSpace terminal)
+;; !(updateWeight (AND terminal 6) 0.001 7 dec)
+;; !(mutateRule (AND terminal 4) 0.7)
+;; !(generateRelations (OR x (AND y z) a) NONE ())
 !(addTerminalsToSpace (x y) &grammarSpace)
+;; !(addTerminalsSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(extractAtomSpace &stochasticGrammarSpace)
-!(calculateProbability (junctor OR) &stochasticGrammarSpace)
-!(getProdRule (AND x) &stochasticGrammarSpace)
-!(generateRelations (AND (OR x y) x) NONE ()) 
-!(extractAtomSpace &grammarSpace)
+!(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 2 3)
+;; !(sggpHelper 0.01 0.001 0.5 3 3 score)
+;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
+;;  !(extractAtomSpace &stochasticGrammarSpace)
+;;  !(updateAtomSpace &grammarSpace (AND terminal) (AND Terminal))
+;;  !(extractAtomSpace &grammarSpace)
+;; !(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
+;; !(extractAtomSpace &stochasticGrammarSpace)!(generateRelations (OR x (AND y z) a) NONE ())
+;; !(addTerminalsToSpace (x y) &grammarSpace)
+;; !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+;; !(reinforceGrammarbasedOnTree (OR x (AND y z) a) 0.01 7 &stochasticGrammarSpace)
+;; !(extractAtomSpace &stochasticGrammarSpace)
+;; !(calculateProbability (junctor OR) &stochasticGrammarSpace)
+;; !(getProdRule (AND x) &stochasticGrammarSpace)
+;; !(generateRelations (AND (OR x y) x) NONE ()) 
+;; !(extractAtomSpace &grammarSpace)
 ;; !(== () (collapse (match &stochasticGrammarSpace (x $rhs $value) $rhs)))
-!(generateInstances junctor &grammarSpace &stochasticGrammarSpace 3)
+;; !(generateInstances junctor &grammarSpace &stochasticGrammarSpace 3)
 ;; !(isWellFormed (AND x (OR x y)))
 ;; !(isWellFormed (AND x y (OR x)))
 ;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
+!(selectK (1 2 3 4 5 6) 3 ())
+!(selectK (1 2 3 4 5) 6 ())
+
