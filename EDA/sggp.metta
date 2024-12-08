@@ -374,7 +374,9 @@
 
     )
 )
-;; (= (exploitInstanceMain $initSymbol $grammarSpace $stoc))
+(= (exploitInstanceMain $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (collapse (unique (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)))
+)
 
 (= (isWellFormed $tree)
     (if (> (length $tree) 0)
@@ -441,7 +443,7 @@
 (= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
         (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
-    )
+    );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
 )
 ;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
 (= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
@@ -498,7 +500,7 @@
 !(addTerminalsToSpace (x y) &grammarSpace)
 ;; !(addTerminalsSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(exploitInstances junctor &grammarSpace &stochasticGrammarSpace 2 3)
+!(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 2 3)
 ;; !(sggpHelper 0.01 0.001 0.5 3 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
