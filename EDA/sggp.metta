@@ -345,15 +345,19 @@
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
                     (if (>= $calculatedProbability (random))
-                        (let $subTreeDerivation (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                        (let* ( 
+                                ($subTreeDerivationLeft (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                ($subTreeDerivationRight (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+
+                            )
                             (if (== $lhs junctor)
                                 (if (>= (random) 0.5)
-                                    (AND $subTreeDerivation $subTreeDerivation)
-                                    (OR $subTreeDerivation $subTreeDerivation)
+                                    (AND $subTreeDerivationLeft $subTreeDerivationRight)
+                                    (OR $subTreeDerivationLeft $subTreeDerivationRight)
                                 )
                                 (if (isAtomJunctor $lhs)
-                                    ($lhs $subTreeDerivation $subTreeDerivation)
-                                    (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))  
+                                    ($lhs $subTreeDerivationLeft $subTreeDerivationRight)  
+                                    $subTreeDerivationLeft
                                 )
                             )
                         )
@@ -370,6 +374,7 @@
 
     )
 )
+;; (= (exploitInstanceMain $initSymbol $grammarSpace $stoc))
 
 (= (isWellFormed $tree)
     (if (> (length $tree) 0)
