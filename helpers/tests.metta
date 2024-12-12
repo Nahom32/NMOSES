@@ -12,7 +12,7 @@
         )
 )
 ;; splits the atom/llist at index x given x  
-(=(split-at-pointK $atoms $index $accum)
+(= (split-at-pointK $atoms $index $accum)
         (if (>= $index 0)
                 (let* (
                         ($head (car-atom $atoms))
@@ -42,6 +42,7 @@
         )
 )
 ;; checks for an availability of an even number.
+
 (= (isEven $number)
         (if (== (% $number 2) 0)
                 True 
@@ -78,3 +79,4 @@
 ;;    !(collapse (let ($a $b $c) (superpose ((a b c) (d e f) (g h i))) $a)) ;; non-deterministic hell
 
 ;; !(mapper (OR (AND A (OR A B)) B) (Cons (A True) (Cons (B False) Nil)))
+;; (if (cond) (truth value) )
