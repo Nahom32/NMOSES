@@ -539,7 +539,7 @@
 ;; !(addTerminalsSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(randomizeList (a b c d e f g h i))
-;; !(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 4 3)
+!(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 1 4)
 ;; !(sggpHelper 0.01 0.001 0.5 3 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
