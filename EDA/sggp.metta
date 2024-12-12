@@ -321,6 +321,43 @@
 
     )
 )
+(= (split-at-pointK $atoms $index $accum)
+        (if (>= $index 0)
+                (let* (
+                        ($head (car-atom $atoms))
+                        ($tail (cdr-atom $atoms))
+
+                )
+                        (split-at-pointK $tail (- $index 1) (cons-atom $head $accum))
+                )
+                ($accum $atoms)
+        )
+)
+;; shuffles the the first k atoms with the (n-k) last list values having length n. 
+(= (random-shuffleK $atoms)
+        (let* (
+                ($len (length $atoms))
+                ($splitPoint (rand 0 (- $len 1)))
+                (($fir $las) (split-at-pointK $atoms $splitPoint ()))
+              )
+                (collapse (union (superpose $las) (superpose $fir)))
+        )
+)
+;; applies randomization to the list probabilistically
+(= (randomizeList $atoms)
+        (if (isEven (rand 0 10))
+                (random-shuffleK $atoms)
+                $atoms
+        )
+)
+;; checks for an availability of an even number.
+
+(= (isEven $number)
+        (if (== (% $number 2) 0)
+                True 
+                False
+        )
+)
 (= (findSuitableProdRules $lhs $stocSpace)
     (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
 )
@@ -340,7 +377,8 @@
                 $initSymbol
                 (let* (
                     ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
-                    ($kRules (selectK $availableRules $explorationCoeff ()))
+                    ($randomizedRules (randomizeList $availableRules))
+                    ($kRules (selectK $randomizedRules $explorationCoeff ()))
                     (($lhs $rhs $weight) (superpose $kRules))
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
@@ -378,28 +416,28 @@
     (collapse (unique (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)))
 )
 
-(= (isWellFormed $tree)
-    (if (> (length $tree) 0)
-        (let* (
-                ($head (car-atom $tree))
-                ($tail (cdr-atom $tree))
-                ($isHeadJunctor (isAtomJunctor $head))
-                ($lengthTail (length $tail))
-            )
-                (if (and $isHeadJunctor (>= (length $tail) 2))
-                    (isWellFormed $tail)
-                    (if $isHeadJunctor
-                        False
-                        (isWellFormed $tail)
-                    )
+;; (= (isWellFormed $tree)
+;;     (if (> (length $tree) 0)
+;;         (let* (
+;;                 ($head (car-atom $tree))
+;;                 ($tail (cdr-atom $tree))
+;;                 ($isHeadJunctor (isAtomJunctor $head))
+;;                 ($lengthTail (length $tail))
+;;             )
+;;                 (if (and $isHeadJunctor (>= (length $tail) 2))
+;;                     (isWellFormed $tail)
+;;                     (if $isHeadJunctor
+;;                         False
+;;                         (isWellFormed $tail)
+;;                     )
                     
-                )
+;;                 )
 
-        )
-        True
-    )
+;;         )
+;;         True
+;;     )
       
-)
+;; )
 ;; This is the main sggp function that is going to called for the main optimization algorithm
 (= (sggpMain $learnRate $mutationRate $thresholdProb $maxRecur $maxDepth $scoreFunc $terminals)
     (let () (initializeAlphabetSpace &alphabetSpace)
@@ -500,7 +538,8 @@
 !(addTerminalsToSpace (x y) &grammarSpace)
 ;; !(addTerminalsSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 2 3)
+!(randomizeList (a b c d e f g h i))
+!(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 1 4)
 ;; !(sggpHelper 0.01 0.001 0.5 3 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
@@ -522,6 +561,6 @@
 ;; !(isWellFormed (AND x y (OR x)))
 ;; !(let $result (/ 1 3) $result)
 ;; !(initializeStochasticSpace &grammarSpace)
-!(selectK (1 2 3 4 5 6) 3 ())
-!(selectK (1 2 3 4 5) 6 ())
+;; !(selectK (1 2 3 4 5 6) 3 ())
+;; !(selectK (1 2 3 4 5) 6 ())
 
