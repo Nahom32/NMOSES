@@ -439,12 +439,12 @@
       
 ;; )
 ;; This is the main sggp function that is going to called for the main optimization algorithm
-(= (sggpMain $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc $terminals)
+(= (sggpMain $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc $terminals)
     (let () (initializeAlphabetSpace &alphabetSpace)
         (let () (initializeGrammarSpace &grammarSpace)
             (let () (addTerminalsToSpace $terminals &grammarSpace)
                 (let () (initializeStochasticSpace &stochasticGrammarSpace)
-                    (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
+                    (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
                 )
             )
         )
@@ -503,10 +503,11 @@
     )
 )
 ;; This is the sggpHelper function that is called recursively and returns results on the sggpMain.
-(= (sggpHelper $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
+(= (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
+    (let () (println! ($maxRecur))
     (if (> $maxRecur 0)
         (let* (
-            ($generatedInstances (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $depth))
+            ($generatedInstances (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth))
             ($goodTrees (filterList >= $scoreFunc $generatedInstances $thresholdProb))
             ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
             ($lenGood (length $goodTrees))
@@ -514,12 +515,15 @@
             ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &stochasticGrammarSpace)))
             ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &stochasticGrammarSpace)))
         )
-            (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
+            (let () (println! (goodTrees ==> $goodTrees))
+                (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
+            )
             
         )
         ;; (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
-        (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $depth)
+        (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth)
     )
+)
 )
 
 ;; !(sggpMain 0.01 0.001 0.5 3 3 score (x y))
@@ -542,7 +546,7 @@
 ;; !(randomizeList (a b c d e f g h i))
 
 ;; !(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 2 4)
-!(sggpHelper 0.01 0.001 0.5 3 1 3 score)
+!(sggpHelper junctor 0.01 0.001 0.5 0 1 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
 ;;  !(updateAtomSpace &grammarSpace (AND terminal) (AND Terminal))
