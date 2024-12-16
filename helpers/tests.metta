@@ -79,4 +79,7 @@
 ;;    !(collapse (let ($a $b $c) (superpose ((a b c) (d e f) (g h i))) $a)) ;; non-deterministic hell
 
 ;; !(mapper (OR (AND A (OR A B)) B) (Cons (A True) (Cons (B False) Nil)))
-;; (if (cond) (truth value) )
+;; (if (cond) (truth value))
+;; (
+;;         (if (> $depth#39732 0) 
+;;         (let $admissibleDerivs#39733 (filterProductionByLeftHandSide GroundingSpace-0x5907bb8f2ff8 $initSymbol#39728) (if (== $admissibleDerivs#39733 ()) $initSymbol#39728 (let* (($availableRules#39734 (findSuitableProdRules $initSymbol#39728 GroundingSpace-0x5907bbb27ec8)) ($randomizedRules#39735 (randomizeList $availableRules#39734)) ($kRules#39736 (selectK $randomizedRules#39735 1 ())) (($lhs#39737 $rhs#39738 $weight#39739) (superpose $kRules#39736)) ($calculatedProbability#39740 (calculateProbability ($lhs#39737 $rhs#39738) GroundingSpace-0x5907bbb27ec8))) (if (>= $calculatedProbability#39740 (random.random)) (let* (($subTreeDerivationLeft#39741 (exploitInstances $rhs#39738 GroundingSpace-0x5907bb8f2ff8 GroundingSpace-0x5907bbb27ec8 1 (- $depth#39732 1))) ($subTreeDerivationRight#39742 (exploitInstances $rhs#39738 GroundingSpace-0x5907bb8f2ff8 GroundingSpace-0x5907bbb27ec8 1 (- $depth#39732 1)))) (if (== $lhs#39737 junctor) (if (>= (random.random) 0.5) (AND $subTreeDerivationLeft#39741 $subTreeDerivationRight#39742) (OR $subTreeDerivationLeft#39741 $subTreeDerivationRight#39742)) (if (isAtomJunctor $lhs#39737) ($lhs#39737 $subTreeDerivationLeft#39741 $subTreeDerivationRight#39742) $subTreeDerivationLeft#39741))) (exploitInstances $rhs#39738 GroundingSpace-0x5907bb8f2ff8 GroundingSpace-0x5907bbb27ec8 1 (- $depth#39732 1)))))) (match GroundingSpace-0x5907bbb27ec8 (terminal $value#39743 $score#39744) $value#39743)))
