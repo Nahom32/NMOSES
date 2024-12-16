@@ -516,7 +516,7 @@
             ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &stochasticGrammarSpace)))
         )
             (let () (println! (goodTrees ==> $goodTrees))
-                (sggpHelper $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
+                (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
             )
             
         )
@@ -546,7 +546,7 @@
 ;; !(randomizeList (a b c d e f g h i))
 
 ;; !(exploitInstanceMain junctor &grammarSpace &stochasticGrammarSpace 2 4)
-!(sggpHelper junctor 0.01 0.001 0.5 0 1 3 score)
+!(sggpHelper junctor 0.01 0.001 0.5 3 1 3 score)
 ;;  !(match &stochasticGrammarSpace (junctor junctor $weight) (reinforceProd (junctor junctor $weight) 0.05 10 &stochasticGrammarSpace))
 ;;  !(extractAtomSpace &stochasticGrammarSpace)
 ;;  !(updateAtomSpace &grammarSpace (AND terminal) (AND Terminal))
