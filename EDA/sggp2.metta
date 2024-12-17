@@ -11,7 +11,7 @@
 !(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
 (= (initializeAlphabetSpace $alphabetSpace)
-    (add-reduct $alphabetSpace (superpose (start expr bop uop)))
+    (add-reduct $alphabetSpace (superpose (start expr bop uop term)))
 )
 
 (= (initializeGrammarSpace $grammarSpace)
@@ -89,13 +89,17 @@
         (/ $weight $totalValue)
     )
 )
+(= (addTerminalsToSpace $terminals $space)
+    (add-atom $space (term (superpose $terminals)))
+)
 !(initializeAlphabetSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 !(filterProductionByLeftHandSide &grammarSpace start)
 !(filterProductionByLeftHandSide &grammarSpace expr)
+!(addTerminalsToSpace (x y z a) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(collapse (get-atoms &stochasticGrammarSpace))
-;; !(collapse (get-atoms &grammarSpace))
+
 
 
 
