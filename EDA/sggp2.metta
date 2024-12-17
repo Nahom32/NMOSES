@@ -7,8 +7,11 @@
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! &alphabetSpace (new-space))
+!(bind! rand (py-atom random.randint)) ;;pseudo random integers
+!(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
+!(bind! pow (py-atom pow))
 (= (initializeAlphabetSpace $alphabetSpace)
-    (add-reduct $alphabetSpace (start expr bop uop term))
+    (add-reduct $alphabetSpace (superpose (start expr bop uop)))
 )
 
 (= (initializeGrammarSpace $grammarSpace)
@@ -86,11 +89,13 @@
         (/ $weight $totalValue)
     )
 )
+!(initializeAlphabetSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 !(filterProductionByLeftHandSide &grammarSpace start)
 !(filterProductionByLeftHandSide &grammarSpace expr)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(collapse (get-atoms &grammarSpace))
+!(collapse (get-atoms &stochasticGrammarSpace))
+;; !(collapse (get-atoms &grammarSpace))
 
 
 
