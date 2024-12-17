@@ -13,16 +13,16 @@
 
 (= (initializeGrammarSpace $grammarSpace)
     (add-reduct $grammarSpace (superpose (
-        (start expr)
-        (expr (bop expr expr))
-        (expr (uop expr))
-        (expr term)
-        (bop AND)
-        (bop OR)
-        (uop NOT)
+            (start expr)
+            (expr (bop expr expr))
+            (expr (uop expr))
+            (expr term)
+            (bop AND)
+            (bop OR)
+            (uop NOT)
 
+        )
     )
-  )
 )
 )
 
@@ -61,7 +61,7 @@
 ;; the below function initializes a stochastic space.
 (= (initializeStochasticSpace $alphabetSpace $grammarSpace $stocSpace)
     (let* (
-        ($grammarAtoms (extractAtomSpace $alphabetSpace))
+        ($grammarAtoms (collapse (get-atoms $alphabetSpace)))
         ($weightedAtoms (collapse (initializeForSingleLhs $grammarSpace (superpose $grammarAtoms))))
     )
         (addListToSpace $stocSpace (superpose $weightedAtoms))
@@ -89,6 +89,7 @@
 !(initializeGrammarSpace &grammarSpace)
 !(filterProductionByLeftHandSide &grammarSpace start)
 !(filterProductionByLeftHandSide &grammarSpace expr)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(collapse (get-atoms &grammarSpace))
 
 
