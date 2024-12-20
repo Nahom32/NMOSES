@@ -92,6 +92,67 @@
 (= (addTerminalsToSpace $terminals $space)
     (add-atom $space (term (superpose $terminals)))
 )
+(= (updateAtomSpace $space $previousRule $currentRule)
+    (let () (remove-atom $space $previousRule)
+        (add-atom $space $currentRule)
+    )
+)
+(= (selectK $list $k $accum)
+    (if ( <= (length $list) $k)
+        $list
+        (if (== $k 0)
+            $accum
+            (let* (
+                ($head (car-atom $list)) 
+                ($tail (cdr-atom $list)) 
+            )
+                (selectK $tail (- $k 1) (cons-atom $head $accum))
+            )
+        )
+
+    )
+)
+(= (split-at-pointK $atoms $index $accum)
+        (if (>= $index 0)
+                (let* (
+                        ($head (car-atom $atoms))
+                        ($tail (cdr-atom $atoms))
+
+                )
+                        (split-at-pointK $tail (- $index 1) (cons-atom $head $accum))
+                )
+                ($accum $atoms)
+        )
+)
+;; shuffles the the first k atoms with the (n-k) last list values having length n. 
+(= (random-shuffleK $atoms)
+        (let* (
+                ($len (length $atoms))
+                ($splitPoint (rand 0 (- $len 1)))
+                (($fir $las) (split-at-pointK $atoms $splitPoint ()))
+              )
+                (collapse (union (superpose $las) (superpose $fir)))
+        )
+)
+;; applies randomization to the list probabilistically
+(= (randomizeList $atoms)
+        (if (isEven (rand 0 10))
+                (random-shuffleK $atoms)
+                $atoms
+        )
+)
+;; checks for an availability of an even number.
+
+(= (isEven $number)
+        (if (== (% $number 2) 0)
+                True 
+                False
+        )
+)
+(= (findSuitableProdRules $lhs $stocSpace)
+    (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
+)
+
 !(initializeAlphabetSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 !(filterProductionByLeftHandSide &grammarSpace start)
