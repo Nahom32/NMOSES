@@ -141,6 +141,9 @@
                 $atoms
         )
 )
+(= (isAtomJunctor $token)
+    (if (or (== $token AND) (== $token OR)) True False)
+)
 ;; checks for an availability of an even number.
 
 (= (isEven $number)
@@ -152,14 +155,48 @@
 (= (findSuitableProdRules $lhs $stocSpace)
     (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
 )
+(= (getRuleFromSubTree $expression $grammarSpace)
+    (unify $expression ($op $exp1 $exp2)
+        (match $stocSpace (, ($exp ($opType $op))
+                                ($exp ($opType $exp $exp))
 
-!(initializeAlphabetSpace &alphabetSpace)
-!(initializeGrammarSpace &grammarSpace)
-!(filterProductionByLeftHandSide &grammarSpace start)
-!(filterProductionByLeftHandSide &grammarSpace expr)
-!(addTerminalsToSpace (x y z a) &grammarSpace)
-!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(collapse (get-atoms &stochasticGrammarSpace))
+                        )
+                        (($exp ($opType $op)) ($exp ($opType $exp $exp)))
+        )
+        (unify $expression ($op $exp1)
+            (match $grammarSpace (, 
+                                ($exp ($opType $op)) 
+                                ($exp ($opType $exp))
+                            )
+                                (($exp ($opType $op)) ($exp ($opType $exp)))
+                            )
+            (match $grammarSpace ($parent $expression)
+                ($parent $expression) 
+            )
+        )
+         
+    )
+
+)
+(= (getProdRulesFromTree $tree $parent $grammarSpace $accum)
+    ;; (if (== $parent NONE)
+    ;;     (let* (
+    ;;         ($head (car-atom $tree))
+    ;;         ($tail (cdr-atom $tree))
+            
+    ;;     )
+
+    ;;     )
+    ;; )
+)
+
+;; !(initializeAlphabetSpace &alphabetSpace)
+;; !(initializeGrammarSpace &grammarSpace)
+;; !(filterProductionByLeftHandSide &grammarSpace start)
+;; !(filterProductionByLeftHandSide &grammarSpace expr)
+;; !(addTerminalsToSpace (x y z a) &grammarSpace)
+;; !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+;; !(collapse (get-atoms &stochasticGrammarSpace))
 
 
 
