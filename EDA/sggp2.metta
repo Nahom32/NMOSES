@@ -155,17 +155,28 @@
 (= (findSuitableProdRules $lhs $stocSpace)
     (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
 )
-(= (getRuleFromSubTree $expression $grammarSpace)
-    (unify $expression ($op $exp1 $exp2)
-        (match $grammarSpace (, ($exp ($opType $op))
+(= (binary-rule ($op $exp1 $exp2) $grammarSpace)
+    (match $grammarSpace (, ($opType $op)
                                 ($exp ($opType $exp $exp))
 
                         )
                         (($exp ($opType $op)) ($exp ($opType $exp $exp)))
+
+    )
+)
+
+(= (getRuleFromSubTree $expression $grammarSpace)
+    (unify $expression ($op $exp1 $exp2)
+        (match $grammarSpace (, ($opType $op)
+                                ($exp ($opType $exp $exp))
+
+                        )
+                        (($opType $op) ($exp ($opType $exp $exp)))
+                        ;; ($exp ($opType $op))
         )
         (unify $expression ($op $exp1)
             (match $grammarSpace (, 
-                                ($exp ($opType $op)) 
+                                ($opType $op) 
                                 ($exp ($opType $exp))
                             )
                                 (($exp ($opType $op)) ($exp ($opType $exp)))
@@ -197,7 +208,7 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 ;; !(addTerminalsToSpace (x y z a) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(getRuleFromSubTree (AND (OR exp1 exp2) exp2) &grammarSpace)
+!(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 
 ;; !(collapse (get-atoms &stochasticGrammarSpace))
 
