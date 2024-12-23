@@ -157,7 +157,7 @@
 )
 (= (getRuleFromSubTree $expression $grammarSpace)
     (unify $expression ($op $exp1 $exp2)
-        (match $stocSpace (, ($exp ($opType $op))
+        (match $grammarSpace (, ($exp ($opType $op))
                                 ($exp ($opType $exp $exp))
 
                         )
@@ -190,12 +190,15 @@
     ;; )
 )
 
-;; !(initializeAlphabetSpace &alphabetSpace)
-;; !(initializeGrammarSpace &grammarSpace)
+
+!(initializeAlphabetSpace &alphabetSpace)
+!(initializeGrammarSpace &grammarSpace)
 ;; !(filterProductionByLeftHandSide &grammarSpace start)
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 ;; !(addTerminalsToSpace (x y z a) &grammarSpace)
-;; !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(getRuleFromSubTree (AND (OR exp1 exp2) exp2) &grammarSpace)
+
 ;; !(collapse (get-atoms &stochasticGrammarSpace))
 
 
