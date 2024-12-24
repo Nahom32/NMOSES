@@ -40,6 +40,7 @@
     )
 )
 ;;This adds new grammar production rules into space
+
 (= (initializeGrammarSpace $space)
     (let () (add-atom $space (junctor junctor))
         (let () (add-atom $space (junctor AND))
@@ -369,6 +370,7 @@
 ;; takes the suitable derivations which fulfill the threshold probabilities
 ;; choose grammar instances that less than or equal to the exploration coefficient.
 ;; builds program trees based on the chosen values.
+;; 5 rules left 3 
 
 (= (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
     (if (> $depth 0)
