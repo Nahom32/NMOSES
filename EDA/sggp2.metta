@@ -155,15 +155,7 @@
 (= (findSuitableProdRules $lhs $stocSpace)
     (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
 )
-(= (binary-rule ($op $exp1 $exp2) $grammarSpace)
-    (match $grammarSpace (, ($opType $op)
-                                ($exp ($opType $exp $exp))
 
-                        )
-                        (($exp ($opType $op)) ($exp ($opType $exp $exp)))
-
-    )
-)
 
 (= (getRuleFromSubTree $expression $grammarSpace)
     (unify $expression ($op $exp1 $exp2)
@@ -172,7 +164,7 @@
 
                         )
                         (($opType $op) ($exp ($opType $exp $exp)))
-                        ;; ($exp ($opType $op))
+
         )
         (unify $expression ($op $exp1)
             (match $grammarSpace (, 
