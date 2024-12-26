@@ -181,16 +181,37 @@
     )
 
 )
-(= (getProdRulesFromTree $tree $parent $grammarSpace $accum)
-    ;; (if (== $parent NONE)
-    ;;     (let* (
-    ;;         ($head (car-atom $tree))
-    ;;         ($tail (cdr-atom $tree))
-            
-    ;;     )
-
-    ;;     )
-    ;; )
+(: getRelations (-> Expression Expression Expression))
+(= (getRelations $tree $accum)
+    (if (== $tree ())
+        $accum
+        (let* (
+            ($head (car-atom $tree))
+            ($tail (cdr-atom $tree))
+        )
+            (if (isAtomJunctor $head)
+                (let* (
+                    ($left (car-atom $tail))
+                    ($secondTail (cdr-atom $tail))
+                    ($right (car-atom $tail))
+                    ($newAccum (cons-atom ($head $left $right) $accum))
+                )
+                    (getRelations $tail $newAccum)
+                )
+                (if (== $head NOT)
+                    (let* ( 
+                        ($child (car-atom $tail))
+                        ($newAccum (cons-atom ($head $child) $accum))
+                        )
+                        (getRelations $tail $newAccum)
+                    )
+                    (let $newAccum (cons-atom $head $accum)
+                        (getRelations $tail $newAccum)
+                    )
+                )
+            )
+        )
+    )
 )
 
 
@@ -201,6 +222,7 @@
 ;; !(addTerminalsToSpace (x y z a) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
+!(getRelations (AND x1 (OR x2 x3)) ())
 
 ;; !(collapse (get-atoms &stochasticGrammarSpace))
 
