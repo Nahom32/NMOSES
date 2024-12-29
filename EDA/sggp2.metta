@@ -10,6 +10,7 @@
 !(bind! rand (py-atom random.randint)) ;;pseudo random integers
 !(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
 !(bind! pow (py-atom pow))
+(= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
 (= (initializeAlphabetSpace $alphabetSpace)
     (add-reduct $alphabetSpace (superpose (start expr bop uop term)))
 )
@@ -224,11 +225,40 @@
             ($tail (cdr-atom $tree))
         )
             (if (== (get-metatype $head) Expression)
+                (let* (
+                    ($recur-result (getRelations $head ()))
+                    ($newAccum (concatTuple $accum $recur-result))
+                )
+                    (getRelations $tail $newAccum)
+                )
+                (if (isAtomJunctor $head)
+                    (let* (
+                        ($left (car-atom $tail))
+                        ($tail' (cdr-atom $tail))
+                        ($right (car-atom $tail'))
+                        ($newAccum (cons-atom ($head $left $right) $accum))
+                    )
+                        (getRelations $tail $newAccum)
+                    )
+                    (if (== $head NOT)
+                        (let* (
+                            ($child (car-atom $tail))
+                            ($newAccum (cons-atom ($head $child) $accum))
 
+                        )
+                            (getRelations $tail $newAccum)
+                        )
+                        (let $newAccum (cons-atom $head $accum)
+                            (getRelations $tail $newAccum)
+                        )
+                    )
+
+                )
             )
         )
     )
 )
+
 
 !(initializeAlphabetSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
