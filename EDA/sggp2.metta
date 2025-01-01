@@ -258,6 +258,47 @@
         )
     )
 )
+;; a helper that extracts the best after comparing with the threshold.
+(= (filter $compSign $func $expression $threshold)
+    (if ( $compSign ($func $expression) $threshold)
+        (empty)
+        $expression
+    )
+)
+(= (filterList $compSign $func $expressions $threshold)
+    (collapse (filter $compSign $func (superpose $expressions) $threshold))
+)
+;;This procedure implements the reinforcing the production rule that is available.
+(= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    )
+)
+;; This procedure implements the punishing a specific production rule that is available.
+(= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+)
+;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
+(= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (generateRelations $tree NONE ()))
+        ($prodRules (collapse (getprodRule (superpose $relations))))
+        
+    )
+        (collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
+)
+;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
+(= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (generateRelations $tree NONE ()))
+        ($prodRules (collapse (getProdRule (superpose $relations))))
+    )
+        (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
+)
 
 
 !(initializeAlphabetSpace &alphabetSpace)
