@@ -299,6 +299,53 @@
         (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
     )
 )
+(= (exploitInstances $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (if (> $depth 0)
+        (let $admissibleDerivs (filterProductionByLeftHandSide $grammarSpace $initSymbol)
+            (if (== $admissibleDerivs ())
+                $initSymbol
+                (let* (
+                    ($availableRules (findSuitableProdRules $initSymbol $stocSpace))
+                    ($randomizedRules (randomizeList $availableRules))
+                    ($kRules (selectK $randomizedRules $explorationCoeff ()))
+                    (($lhs $rhs $weight) (superpose $kRules))
+                    ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
+                )
+                    (if (>= $calculatedProbability (random))
+                        (let* ( 
+                                ($current (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
+                                ($subTreeDerivationLeft (exploitInstances $current $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                ($subTreeDerivationRight (exploitInstances $current $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+
+                            )
+                            (if (== $lhs bop)
+                                (if (>= (random) 0.5)
+                                    (AND $subTreeDerivationLeft $subTreeDerivationRight)
+                                    (OR $subTreeDerivationLeft $subTreeDerivationRight)
+                                )
+                                (if (== $lhs uop)
+                                    (NOT $subTreeDerivationLeft)
+                                    (if (isAtomJunctor $lhs)
+                                        ($lhs $subTreeDerivationLeft $subTreeDerivationRight)  
+                                        $subTreeDerivationLeft
+                                    )
+                                )
+                            )
+                        )
+                        (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                    )
+                    
+                )
+
+            )
+        )
+        (match $stocSpace (term $value $score)
+            $value
+        )
+
+    )
+)
+
 
 
 !(initializeAlphabetSpace &alphabetSpace)
