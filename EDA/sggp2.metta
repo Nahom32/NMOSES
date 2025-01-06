@@ -362,6 +362,8 @@
 (= (generateTrees $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
     (if (== $initSymbol start)
         (generateTrees expr $grammarSpace $stocSpace $explorationCoeff $depth)
+        (if (<= $depth 0)
+            (empty)
         (let $derivs (findSuitableProdRules $initSymbol $stocSpace)
             (if (== $derivs ())
                 $initSymbol
@@ -369,15 +371,27 @@
                     (($lhs $rhs $weight) (superpose $derivs))
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
-                    (if ( >= $calculatedProbability (py-atom random.random))
-                        (let* (
-                            ()
-                        ))
+                    (if (>= $calculatedProbability (py-atom random.random))
+                       (let* (
+                            ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                            ($rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
+                            ($left (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                            ($right (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                       )
+                            (if (== $lhs bop)
+                                ($head $left $right)
+                                ($head $left)
+                            )
+                       )
+                       (empty)
                         
                     )
+                    
                 )
+
             )
         )
+    )
         
     )
 )
@@ -390,7 +404,7 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 !(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(collapse (unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 2)))
+!(generateTrees start &grammarSpace &stochasticGrammarSpace 3 2)
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
 
