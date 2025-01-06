@@ -14,6 +14,18 @@
 (= (initializeAlphabetSpace $alphabetSpace)
     (add-reduct $alphabetSpace (superpose (start expr bop uop term)))
 )
+(= (length $list)
+    (if (== $list ())
+        0(= (buildDerivationTree $startSymbol $stocSpace ))
+        (+ 1 (length (cdr-atom $list)))
+    )
+)
+(= (sum $tuple)
+    (if (== $tuple ())
+        0
+        (+ (car-atom $tuple) (sum (cdr-atom $tuple)))
+    )
+)
 
 (= (initializeGrammarSpace $grammarSpace)
     (add-reduct $grammarSpace (superpose (
@@ -309,11 +321,12 @@
                     ($randomizedRules (randomizeList $availableRules))
                     ($kRules (selectK $randomizedRules $explorationCoeff ()))
                     (($lhs $rhs $weight) (superpose $kRules))
+                    ($current (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
-                    (if (>= $calculatedProbability (random))
+                    (if (>= $calculatedProbability (py-atom random.random))
                         (let* ( 
-                                ($current (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
+                                
                                 ($subTreeDerivationLeft (exploitInstances $current $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
                                 ($subTreeDerivationRight (exploitInstances $current $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
 
@@ -332,7 +345,7 @@
                                 )
                             )
                         )
-                        (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                        (exploitInstances $current $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
                     )
                     
                 )
@@ -346,14 +359,38 @@
     )
 )
 
+(= (generateTrees $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (if (== $initSymbol start)
+        (generateTrees expr $grammarSpace $stocSpace $explorationCoeff $depth)
+        (let $derivs (findSuitableProdRules $initSymbol $stocSpace)
+            (if (== $derivs ())
+                $initSymbol
+                (let* (
+                    (($lhs $rhs $weight) (superpose $derivs))
+                    ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
+                )
+                    (if ( >= $calculatedProbability (py-atom random.random))
+                        (let* (
+                            ()
+                        ))
+                        
+                    )
+                )
+            )
+        )
+        
+    )
+)
+
 
 
 !(initializeAlphabetSpace &alphabetSpace)
 !(initializeGrammarSpace &grammarSpace)
 ;; !(filterProductionByLeftHandSide &grammarSpace start)
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
-;; !(addTerminalsToSpace (x y z a) &grammarSpace)
+!(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+!(collapse (unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 2)))
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
 
