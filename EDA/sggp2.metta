@@ -363,7 +363,7 @@
     (if (== $initSymbol start)
         (generateTrees expr $grammarSpace $stocSpace $explorationCoeff $depth)
         (if (<= $depth 0)
-            (empty)
+            $initSymbol
         (let $derivs (findSuitableProdRules $initSymbol $stocSpace)
             (if (== $derivs ())
                 $initSymbol
@@ -371,7 +371,7 @@
                     (($lhs $rhs $weight) (superpose $derivs))
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
-                    (if (>= $calculatedProbability (py-atom random.random))
+                    (if (>= $calculatedProbability (random))
                        (let* (
                             ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
                             ($rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
@@ -383,8 +383,9 @@
                                 ($head $left)
                             )
                        )
-                       (empty)
-                        
+                       
+                        ;; (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                        (empty)
                     )
                     
                 )
