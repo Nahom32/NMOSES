@@ -372,17 +372,36 @@
                     ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
                 )
                     (if (>= $calculatedProbability (random))
-                       (let* (
-                            ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                            ($rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
-                            ($left (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                            ($right (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                       )
-                            (if (== $lhs bop)
-                                ($head $left $right)
-                                ($head $left)
+                    ;;    (let* (
+                    ;;         ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                    ;;         ($rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
+                    ;;         ($left (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                    ;;         ($right (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                    ;;    )
+                        (if (== $lhs bop)
+                            (let* (
+                                ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                ($right (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                
                             )
-                       )
+                                ($head $left $right)
+                            )
+                            (if (== $lhs uop)
+                                (let* (
+                                    ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                )
+                                    ($head $right)
+                                )
+                                (let $rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs)
+                                    (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                                )
+                            )
+                            
+                           
+                        )
+                    ;;    )
                        
                         ;; (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
                         (empty)
