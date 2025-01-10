@@ -358,60 +358,58 @@
 
     )
 )
-
+;; (=(isTerminal $token $stocSpace)
+;;     (let $admissibleDerivs (findSutableProdRules $token $stocSpace)
+;;         (if (== $admissibleDerivs ()) True False)
+;;     )
+;; )
 (= (generateTrees $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
     (if (== $initSymbol start)
         (generateTrees expr $grammarSpace $stocSpace $explorationCoeff $depth)
-        (if (<= $depth 0)
-            $initSymbol
         (let $derivs (findSuitableProdRules $initSymbol $stocSpace)
             (if (== $derivs ())
                 $initSymbol
-                (let* (
-                    (($lhs $rhs $weight) (superpose $derivs))
-                    ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
-                )
-                    (if (>= $calculatedProbability (random))
-                    ;;    (let* (
-                    ;;         ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                    ;;         ($rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs))
-                    ;;         ($left (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                    ;;         ($right (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                    ;;    )
-                        (if (== $lhs bop)
-                            (let* (
-                                ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                ($right (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                
-                            )
-                                ($head $left $right)
-                            )
-                            (if (== $lhs uop)
+                (if (<= $depth 0)
+                (match $grammarSpace ($initSymbol $x) (if (== $x ()) $initSymbol $x))
+                    (let* (
+                        (($lhs $rhs $weight) (superpose $derivs))
+                        ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
+                    )
+                        (if (>= $calculatedProbability (random))
+                            (if (== $lhs bop)
                                 (let* (
                                     ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
                                     ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($right (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    
                                 )
-                                    ($head $right)
+                                    ($head $left $right)
                                 )
-                                (let $rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs)
-                                    (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                                (if (== $lhs uop)
+                                    (let* (
+                                        ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                        ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    )
+                                        ($head $left)
+                                    )
+                                    (let $rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs)
+                                        (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                                    )
                                 )
-                            )
+                                
                             
-                           
+                            )
+                        ;;    )
+                        
+                            (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
                         )
-                    ;;    )
-                       
-                        ;; (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
-                        (empty)
+                        
                     )
-                    
-                )
+            )
 
             )
         )
-    )
+    ;; )
         
     )
 )
@@ -424,7 +422,7 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 !(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(generateTrees start &grammarSpace &stochasticGrammarSpace 3 2)
+!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 2))
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
 
