@@ -370,7 +370,8 @@
             (if (== $derivs ())
                 $initSymbol
                 (if (<= $depth 0)
-                (match $grammarSpace ($initSymbol $x) (if (== $x ()) $initSymbol $x))
+                    ;; (match $grammarSpace ($initSymbol $x) (if (== $x ()) $initSymbol $x))
+                    (match $grammarSpace (term $x) $x)
                     (let* (
                         (($lhs $rhs $weight) (superpose $derivs))
                         ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
@@ -378,17 +379,17 @@
                         (if (>= $calculatedProbability (random))
                             (if (== $lhs bop)
                                 (let* (
-                                    ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                    ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                    ($right (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($head (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($left (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($right (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
                                     
                                 )
                                     ($head $left $right)
                                 )
                                 (if (== $lhs uop)
                                     (let* (
-                                        ($head (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
-                                        ($left (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                        ($head (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                        ($left (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
                                     )
                                         ($head $left)
                                     )
@@ -399,9 +400,10 @@
                                 
                             
                             )
-                        ;;    )
                         
                             (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                            ;; (This is calculated probability $calculatedProbability)
+                            ;; (This is random value (random))
                         )
                         
                     )
@@ -409,7 +411,7 @@
 
             )
         )
-    ;; )
+    ;
         
     )
 )
@@ -422,7 +424,7 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 !(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 2))
+!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 4 2))
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
 
