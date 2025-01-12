@@ -416,6 +416,29 @@
     )
 )
 
+(= (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
+    (let () (println! ($maxRecur))
+    (if (> $maxRecur 0)
+        (let* (
+            ($generatedInstances (collapse (unique (generateTrees $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth))))
+            ($goodTrees (filterList >= $scoreFunc $generatedInstances $thresholdProb))
+            ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
+            ($lenGood (length $goodTrees))
+            ($lenBad (length $badTrees))
+            ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &stochasticGrammarSpace)))
+            ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &stochasticGrammarSpace)))
+        )
+            (let () (println! (goodTrees ==> $goodTrees))
+                (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
+            )
+            
+        )
+        ;; (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
+        (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth)
+    )
+)
+)
+
 
 
 !(initializeAlphabetSpace &alphabetSpace)
