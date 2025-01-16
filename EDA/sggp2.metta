@@ -4,6 +4,8 @@
 ;;            <term>
 ;; <bop>   -> AND | OR
 ;; <uop>   -> NOT
+! (register-module! ../EDA)
+! (import! &self EDA:scoring:fitness)
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! &alphabetSpace (new-space))
@@ -16,7 +18,7 @@
 )
 (= (length $list)
     (if (== $list ())
-        0(= (buildDerivationTree $startSymbol $stocSpace ))
+        0
         (+ 1 (length (cdr-atom $list)))
     )
 )
@@ -414,6 +416,28 @@
     ;
         
     )
+)
+;; First start with two terminals which is equal to Nil
+;; generate two terms
+;; generate a junctor 
+;; concatenate (junctor term1 term2) as a term3
+;; Hence the algorithm takes term1 and term2 as the argument with currIndex tracker
+(= (recur-generator $left $right $grammarSpace $stocSpace $depth $index)
+    (if (== $depth $index)
+        $left
+        (if (and (== $left None) (== $right None))
+            (let* (
+
+            ))
+        )
+    )
+)
+(=(fitnessWithdata $data)
+    (fitness (OR (AND A (NOT B)) (AND C D))
+             ((True (A True) (B False) (C True) (D True)) 
+             (False (A False) (B True) (C False) (D False)) 
+           (True (A True) (B False) (C False) (D True))))
+
 )
 
 (= (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
