@@ -458,7 +458,7 @@
             
         )
         ;; (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
-        (exploitInstanceMain $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth)
+        (collapse (unique (generateTrees $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth)))
     )
 )
 )
@@ -471,7 +471,8 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 !(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 4 2))
+!(sggpHelper start 0.01 0.001 0.5 3 1 3 fitnessWithdata)
+;; !(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 4 2))
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
 
