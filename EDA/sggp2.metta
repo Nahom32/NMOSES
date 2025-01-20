@@ -471,7 +471,7 @@
 ;; !(filterProductionByLeftHandSide &grammarSpace expr)
 !(addTerminalsToSpace (x y) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
-!(sggpHelper start 0.01 0.001 0.5 3 1 3 fitnessWithdata)
+!(sggpHelper start 0.01 0.001 0.5 1 1 3 fitnessWithdata)
 ;; !(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 4 2))
 !(getRuleFromSubTree (AND exp1 exp2) &grammarSpace)
 !(getRelations (AND x1 (OR x2 x3)) ())
