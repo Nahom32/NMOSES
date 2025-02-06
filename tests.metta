@@ -26,3 +26,6 @@
     ((AND terminal 9))
 )
 ;; ((if True (OR (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1)) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))))
+(goodTrees (collapse (filter >= fitnessWithdata (superpose ((AND x1 x1))) 0.5)) badTrees (collapse (filter < fitnessWithdata (superpose ((AND x1 x1))) 0.5)))
+!(superpose ((AND x1 x1)))
+!(collapse (empty))

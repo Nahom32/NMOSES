@@ -1,6 +1,6 @@
 ;; Example of program synthesis using the backward chainer (operators
 ;; are not curried).
-
+;; moses uncurry metta
 ;; Define Nat
 (: Nat Type)
 (: Z Nat)
