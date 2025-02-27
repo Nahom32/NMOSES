@@ -26,3 +26,14 @@
     ((AND terminal 9))
 )
 ;; ((if True (OR (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1)) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))) (generateInstancesHelper OR GroundingSpace-0x5a2854798678 (- 3 1))))
+(goodTrees (collapse (filter >= fitnessWithdata (superpose ((AND x1 x1))) 0.5)) badTrees (collapse (filter < fitnessWithdata (superpose ((AND x1 x1))) 0.5)))
+!(superpose ((AND x1 x1)))
+!(collapse (empty))
+(let* 
+    (
+        ($_#12543 (reinforceProd ((bop AND 9) (expr (bop expr expr) 37.19390363447943)) 0.01 15 GroundingSpace-0x5bfb63fc12f8)) 
+        ($stocAtoms#12544 (collapse (get-atoms GroundingSpace-0x5bfb63fc12f8))) 
+        (() (println! (stocAtoms $stocAtoms#12544 tail ((term x2 9) (term x1 9)  ((bop OR 9) (expr (bop expr expr) 37.19390363447943))))))
+    ) 
+        (reinforceTreeHelper ((term x2 9) (term x1 9) ((bop OR 9) (expr (bop expr expr) 37.19390363447943))) 0.01 15 GroundingSpace-0x5bfb63fc12f8)
+)
